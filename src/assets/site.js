@@ -50,65 +50,110 @@ function initCarousel() {
     prev();
     clearInterval(interval);
   });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      event.preventDefault();
+      next();
+    }
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      prev();
+    }
+  });
 }
 
 function initTributeNavigation() {
   document.querySelectorAll('[data-tribute-track]').forEach((track) => {
     const panels = Array.from(track.querySelectorAll('.tribute-panel'));
     if (panels.length === 0) return;
+    const shell = track.closest('.tribute-shell');
+    const prevPage = shell?.dataset.prevPage;
+    const nextPage = shell?.dataset.nextPage;
+    let scrollLocked = false;
 
     const scrollToPanel = (index) => {
-      if (index < 0 || index >= panels.length) return;
+      if (index < 0) {
+        if (prevPage) window.location.href = prevPage;
+        return;
+      }
+      if (index >= panels.length) {
+        if (nextPage) window.location.href = nextPage;
+        return;
+      }
       panels[index].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    const getCurrentIndex = () => {
+      const scrollTop = track.scrollTop;
+      let current = 0;
+      panels.forEach((panel, idx) => {
+        if (panel.offsetTop <= scrollTop + track.clientHeight * 0.3) {
+          current = idx;
+        }
+      });
+      return current;
     };
 
     track.closest('.tribute-page').querySelectorAll('[data-tribute-next]').forEach((button) => {
       button.addEventListener('click', () => {
-        const current = panels.findIndex((panel) => {
-          const rect = panel.getBoundingClientRect();
-          return rect.top >= 0 && rect.top < window.innerHeight * 0.5;
-        });
-        scrollToPanel(current + 1);
+        scrollToPanel(getCurrentIndex() + 1);
       });
     });
 
     track.closest('.tribute-page').querySelectorAll('[data-tribute-prev]').forEach((button) => {
       button.addEventListener('click', () => {
-        const current = panels.findIndex((panel) => {
-          const rect = panel.getBoundingClientRect();
-          return rect.top >= 0 && rect.top < window.innerHeight * 0.5;
-        });
-        scrollToPanel(current - 1);
+        scrollToPanel(getCurrentIndex() - 1);
       });
     });
 
     track.querySelectorAll('.tribute-body').forEach((body) => {
       body.addEventListener('wheel', (event) => {
+        if (scrollLocked) return;
         const atBottom = body.scrollTop + body.clientHeight >= body.scrollHeight - 2;
         const atTop = body.scrollTop <= 2;
         if (event.deltaY > 0 && atBottom) {
           event.preventDefault();
-          const panel = body.closest('.tribute-panel');
-          const index = panels.indexOf(panel);
-          scrollToPanel(index + 1);
+          scrollLocked = true;
+          scrollToPanel(getCurrentIndex() + 1);
+          setTimeout(() => { scrollLocked = false; }, 400);
         }
         if (event.deltaY < 0 && atTop) {
           event.preventDefault();
-          const panel = body.closest('.tribute-panel');
-          const index = panels.indexOf(panel);
-          scrollToPanel(index - 1);
+          scrollLocked = true;
+          scrollToPanel(getCurrentIndex() - 1);
+          setTimeout(() => { scrollLocked = false; }, 400);
         }
       }, { passive: false });
     });
 
+    track.addEventListener('wheel', (event) => {
+      if (scrollLocked) return;
+      const atBottom = track.scrollTop + track.clientHeight >= track.scrollHeight - 2;
+      const atTop = track.scrollTop <= 2;
+      if (event.deltaY > 0 && atBottom) {
+        event.preventDefault();
+        scrollLocked = true;
+        scrollToPanel(getCurrentIndex() + 1);
+        setTimeout(() => { scrollLocked = false; }, 400);
+      }
+      if (event.deltaY < 0 && atTop) {
+        event.preventDefault();
+        scrollLocked = true;
+        scrollToPanel(getCurrentIndex() - 1);
+        setTimeout(() => { scrollLocked = false; }, 400);
+      }
+    }, { passive: false });
+
     document.addEventListener('keydown', (event) => {
-      if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
-      const current = panels.findIndex((panel) => {
-        const rect = panel.getBoundingClientRect();
-        return rect.top >= 0 && rect.top < window.innerHeight * 0.5;
-      });
-      if (event.key === 'ArrowDown') scrollToPanel(current + 1);
-      if (event.key === 'ArrowUp') scrollToPanel(current - 1);
+      if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
+        event.preventDefault();
+        scrollToPanel(getCurrentIndex() + 1);
+      }
+      if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+        event.preventDefault();
+        scrollToPanel(getCurrentIndex() - 1);
+      }
     });
   });
 }

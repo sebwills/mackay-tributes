@@ -37,10 +37,33 @@ def format_paragraphs(text: str) -> str:
     blocks = re.split(r"\n\s*\n", text)
     rendered = []
     for block in blocks:
+        block = re.sub(r"\s+", " ", block.replace("\n", " ")).strip()
+        block = smart_typography(block)
         block = html.escape(block)
-        block = block.replace("\n", "<br>")
         rendered.append(f"<p>{block}</p>")
     return "\n".join(rendered)
+
+
+def smart_typography(text: str) -> str:
+    text = text.replace("--", "—")
+    result = []
+    open_double = True
+    open_single = True
+    for i, ch in enumerate(text):
+        if ch == '"':
+            result.append("“" if open_double else "”")
+            open_double = not open_double
+        elif ch == "'":
+            prev = text[i - 1] if i > 0 else ""
+            nxt = text[i + 1] if i + 1 < len(text) else ""
+            if prev.isalnum() and nxt.isalnum():
+                result.append("’")
+            else:
+                result.append("‘" if open_single else "’")
+                open_single = not open_single
+        else:
+            result.append(ch)
+    return "".join(result)
 
 
 def asset_prefix(depth: int) -> str:
@@ -142,12 +165,12 @@ def build():
 <section>
   <h2 class=\"section-title\">A few voices from the archive</h2>
   <div class=\"carousel\" data-carousel>
-    <div class=\"carousel-items\">
-      {carousel_markup}
-    </div>
     <div class=\"carousel-controls\">
       <button class=\"button\" data-carousel-prev>Previous</button>
       <button class=\"button\" data-carousel-next>Next</button>
+    </div>
+    <div class=\"carousel-items\">
+      {carousel_markup}
     </div>
   </div>
 </section>
@@ -204,8 +227,12 @@ def build():
     write_page(DIST / "category" / "index.html", category_index_html)
 
     # Category pages
-    for section, items in categories.items():
+    category_keys = sorted(categories.keys())
+    for idx, section in enumerate(category_keys):
+        items = categories[section]
         slug = slugify(section)
+        prev_section = category_keys[idx - 1] if idx > 0 else category_keys[-1]
+        next_section = category_keys[idx + 1] if idx + 1 < len(category_keys) else category_keys[0]
         desc = CATEGORY_INFO.get(section, "")
         panels = []
         for tribute in items:
@@ -224,13 +251,16 @@ def build():
         content = f"""
 <section class=\"tribute-page\">
   <div class=\"tribute-nav\">
+    <a class=\"button\" href=\"../index.html\">Back to categories</a>
     <button class=\"button\" data-tribute-prev>Previous</button>
     <button class=\"button primary\" data-tribute-next>Next</button>
   </div>
-  <h1 class=\"section-title\">{html.escape(section.title().replace('_', ' '))}</h1>
-  <p class=\"caption\">{html.escape(desc)}</p>
-  <div class=\"tribute-track\" data-tribute-track data-shuffle=\"true\">
-    {panels_markup}
+  <div class=\"tribute-shell\" data-prev-page=\"../{slugify(prev_section)}/index.html\" data-next-page=\"../{slugify(next_section)}/index.html\">
+    <h1 class=\"section-title\">{html.escape(section.title().replace('_', ' '))}</h1>
+    <p class=\"caption\">{html.escape(desc)}</p>
+    <div class=\"tribute-track\" data-tribute-track data-shuffle=\"true\">
+      {panels_markup}
+    </div>
   </div>
 </section>
 """
@@ -253,10 +283,11 @@ def build():
     for slug, items in sorted(authors.items(), key=lambda x: x[0]):
         display = items[0]["name"] or "Anonymous"
         count = len(items)
+        meta = f"<div class=\"card-meta\">{count} tribute{'s' if count != 1 else ''}</div>" if count > 1 else ""
         author_cards.append(
             f"<a class=\"card\" href=\"./{slug}/index.html\">\n"
             f"  <h3 class=\"card-title\">{html.escape(display)}</h3>\n"
-            f"  <div class=\"card-meta\">{count} tribute{'s' if count != 1 else ''}</div>\n"
+            f"  {meta}\n"
             f"</a>"
         )
 
@@ -284,18 +315,21 @@ def build():
     write_page(DIST / "author" / "index.html", author_index_html)
 
     # Author pages
-    for slug, items in authors.items():
+    author_slugs = [slug for slug, _ in sorted(authors.items(), key=lambda x: x[0])]
+    for idx, slug in enumerate(author_slugs):
+        items = authors[slug]
         display = items[0]["name"] or "Anonymous"
+        prev_slug = author_slugs[idx - 1] if idx > 0 else author_slugs[-1]
+        next_slug = author_slugs[idx + 1] if idx + 1 < len(author_slugs) else author_slugs[0]
         panels = []
         for tribute in items:
             tribute_html = format_paragraphs(tribute["tribute"])
             how = html.escape(tribute["how"]) if tribute["how"] else ""
-            section = html.escape(tribute["section"].title().replace("_", " "))
             meta = f"<strong>{html.escape(display)}</strong>" + (f" — {how}" if how else "")
             panels.append(
                 f"<section class=\"tribute-panel\">\n"
                 f"  <div class=\"tribute-body\">{tribute_html}</div>\n"
-                f"  <div class=\"tribute-meta\">{meta} · {section}</div>\n"
+                f"  <div class=\"tribute-meta\">{meta}</div>\n"
                 f"</section>"
             )
 
@@ -303,12 +337,15 @@ def build():
         content = f"""
 <section class=\"tribute-page\">
   <div class=\"tribute-nav\">
+    <a class=\"button\" href=\"../index.html\">Back to authors</a>
     <button class=\"button\" data-tribute-prev>Previous</button>
     <button class=\"button primary\" data-tribute-next>Next</button>
   </div>
-  <h1 class=\"section-title\">{html.escape(display)}</h1>
-  <div class=\"tribute-track\" data-tribute-track data-shuffle=\"true\">
-    {panels_markup}
+  <div class=\"tribute-shell\" data-prev-page=\"../{prev_slug}/index.html\" data-next-page=\"../{next_slug}/index.html\">
+    <h1 class=\"section-title\">{html.escape(display)}</h1>
+    <div class=\"tribute-track\" data-tribute-track data-shuffle=\"true\">
+      {panels_markup}
+    </div>
   </div>
 </section>
 """
