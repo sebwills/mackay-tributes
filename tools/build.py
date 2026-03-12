@@ -178,7 +178,7 @@ def build():
       <a class=\"button\" href=\"./author/index.html\">Browse by author</a>
     </div>
   </div>
-  <div>
+  <div class=\"hero-photo\">
     <img src=\"./{html.escape(config.get('image', ''))}\" alt=\"Portrait of Sir David MacKay\" />
     <div class=\"caption\">Photo: David Stern (CC licensed)</div>
   </div>
