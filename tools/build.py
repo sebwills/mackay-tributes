@@ -40,6 +40,7 @@ def format_paragraphs(text: str) -> str:
         block = re.sub(r"\s+", " ", block.replace("\n", " ")).strip()
         block = smart_typography(block)
         block = html.escape(block)
+        block = enrich_acronyms(block)
         rendered.append(f"<p>{block}</p>")
     return "\n".join(rendered)
 
@@ -64,6 +65,24 @@ def smart_typography(text: str) -> str:
         else:
             result.append(ch)
     return "".join(result)
+
+
+def enrich_acronyms(text: str) -> str:
+    def repl(match):
+        key = match.group(0)
+        if key == "SEWTHA":
+            return (
+                '<span class="acronym" data-tooltip="Sustainable Energy Without the Hot Air">'
+                '<a href="https://withouthotair.com">SEWTHA</a></span>'
+            )
+        if key == "ITILA":
+            return (
+                '<span class="acronym" data-tooltip="Information Theory, Inference, and Learning Algorithms">'
+                '<a href="https://www.inference.org.uk/mackay/itila/book.html">ITILA</a></span>'
+            )
+        return key
+
+    return re.sub(r"\b(SEWTHA|ITILA)\b", repl, text)
 
 
 def asset_prefix(depth: int) -> str:
@@ -99,6 +118,7 @@ def load_tributes():
             tributes.append({
                 "section": row.get("Section", "").strip(),
                 "name": row.get("Name", "").strip(),
+                "name_index": row.get("Name_for_index", "").strip(),
                 "how": row.get("How_knew_David", "").strip(),
                 "tribute": row.get("Tribute", "").strip(),
             })
@@ -122,7 +142,9 @@ def build():
 
     for tribute in tributes:
         tribute["section_slug"] = slugify(tribute["section"])
-        tribute["author_slug"] = slugify(tribute["name"]) if tribute["name"] else "unknown"
+        index_name = tribute["name_index"] or tribute["name"]
+        tribute["author_slug"] = slugify(index_name) if index_name else "unknown"
+        tribute["author_sort"] = index_name.lower() if index_name else "unknown"
 
     categories = {}
     authors = {}
@@ -274,7 +296,7 @@ def build():
 
     # Author index
     author_cards = []
-    for slug, items in sorted(authors.items(), key=lambda x: x[0]):
+    for slug, items in sorted(authors.items(), key=lambda x: x[1][0]["author_sort"]):
         display = items[0]["name"] or "Anonymous"
         count = len(items)
         meta = f"<div class=\"card-meta\">{count} tribute{'s' if count != 1 else ''}</div>" if count > 1 else ""
@@ -309,7 +331,7 @@ def build():
     write_page(DIST / "author" / "index.html", author_index_html)
 
     # Author pages
-    author_slugs = [slug for slug, _ in sorted(authors.items(), key=lambda x: x[0])]
+    author_slugs = [slug for slug, _ in sorted(authors.items(), key=lambda x: x[1][0]["author_sort"])]
     for idx, slug in enumerate(author_slugs):
         items = authors[slug]
         display = items[0]["name"] or "Anonymous"
