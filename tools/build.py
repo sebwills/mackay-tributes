@@ -198,6 +198,7 @@ def build():
 </section>
 """
 
+    draft_badge = "<span class=\"draft-badge\">DRAFT</span>" if config.get("is_draft") else ""
     home_html = render_page(
         template,
         title=config.get("site_title", "Tributes"),
@@ -205,7 +206,7 @@ def build():
         description="Tributes collected for Sir David MacKay FRS.",
         asset_prefix=asset_prefix(0),
         page_class="home",
-        site_title=html.escape(config.get("site_title", "Tributes")),
+        site_title=html.escape(config.get("site_title", "Tributes")) + draft_badge,
         content=home_content,
         page_script="",
     )
@@ -242,7 +243,7 @@ def build():
         description="Tribute categories.",
         asset_prefix=asset_prefix(1),
         page_class="category-index",
-        site_title=html.escape(config.get("site_title", "Tributes")),
+        site_title=html.escape(config.get("site_title", "Tributes")) + draft_badge,
         content=category_index_content,
         page_script="",
     )
@@ -292,7 +293,7 @@ def build():
             description=f"Tributes in the {section} category.",
             asset_prefix=asset_prefix(2),
             page_class="category-page",
-            site_title=html.escape(config.get("site_title", "Tributes")),
+            site_title=html.escape(config.get("site_title", "Tributes")) + draft_badge,
             content=content,
             page_script="",
         )
@@ -328,7 +329,7 @@ def build():
         description="Tributes by author.",
         asset_prefix=asset_prefix(1),
         page_class="author-index",
-        site_title=html.escape(config.get("site_title", "Tributes")),
+        site_title=html.escape(config.get("site_title", "Tributes")) + draft_badge,
         content=author_index_content,
         page_script="",
     )
@@ -381,7 +382,7 @@ def build():
             description=f"Tributes by {display}.",
             asset_prefix=asset_prefix(2),
             page_class="author-page",
-            site_title=html.escape(config.get("site_title", "Tributes")),
+            site_title=html.escape(config.get("site_title", "Tributes")) + draft_badge,
             content=content,
             page_script="",
         )

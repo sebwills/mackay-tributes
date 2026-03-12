@@ -22,6 +22,7 @@ body {
   font-family: var(--serif);
   color: var(--ink);
   background: radial-gradient(circle at top left, #ffffff 0%, var(--bg) 48%, #efe8dd 100%);
+  background-attachment: fixed;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -51,6 +52,20 @@ body {
   letter-spacing: 0.02em;
   text-decoration: none;
   color: var(--ink);
+}
+
+.draft-badge {
+  margin-left: 12px;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  color: #ffffff;
+  background: #b21b1b;
+  border: 1px solid #b21b1b;
+  padding: 4px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
 }
 
 .site-nav a {
