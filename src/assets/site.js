@@ -64,6 +64,7 @@ function initCarousel() {
 }
 
 function initTributeNavigation() {
+  if (!document.body.classList.contains('author-page')) return;
   document.querySelectorAll('[data-tribute-track]').forEach((track) => {
     const panels = Array.from(track.querySelectorAll('.tribute-panel'));
     if (panels.length === 0) return;
@@ -71,6 +72,8 @@ function initTributeNavigation() {
     const prevPage = shell?.dataset.prevPage;
     const nextPage = shell?.dataset.nextPage;
     let scrollLocked = false;
+    let resistance = 0;
+    let direction = 0;
 
     const scrollToPanel = (index) => {
       if (index < 0) {
@@ -95,6 +98,15 @@ function initTributeNavigation() {
       return current;
     };
 
+    const resetStretch = () => {
+      panels.forEach((panel) => {
+        panel.style.transform = '';
+        panel.classList.remove('is-stretching');
+      });
+      resistance = 0;
+      direction = 0;
+    };
+
     track.closest('.tribute-page').querySelectorAll('[data-tribute-next]').forEach((button) => {
       button.addEventListener('click', () => {
         scrollToPanel(getCurrentIndex() + 1);
@@ -114,16 +126,35 @@ function initTributeNavigation() {
         const atTop = body.scrollTop <= 2;
         if (event.deltaY > 0 && atBottom) {
           event.preventDefault();
-          scrollLocked = true;
-          scrollToPanel(getCurrentIndex() + 1);
-          setTimeout(() => { scrollLocked = false; }, 400);
+          direction = 1;
+          resistance += event.deltaY;
+          const panel = panels[getCurrentIndex()];
+          panel.classList.add('is-stretching');
+          panel.style.transform = `translateY(${-Math.min(resistance * 0.15, 40)}px)`;
+          panel.style.opacity = `${Math.max(1 - resistance / 600, 0.6)}`;
+          if (resistance > 320) {
+            scrollLocked = true;
+            resetStretch();
+            scrollToPanel(getCurrentIndex() + 1);
+            setTimeout(() => { scrollLocked = false; }, 500);
+          }
         }
         if (event.deltaY < 0 && atTop) {
           event.preventDefault();
-          scrollLocked = true;
-          scrollToPanel(getCurrentIndex() - 1);
-          setTimeout(() => { scrollLocked = false; }, 400);
+          direction = -1;
+          resistance += Math.abs(event.deltaY);
+          const panel = panels[getCurrentIndex()];
+          panel.classList.add('is-stretching');
+          panel.style.transform = `translateY(${Math.min(resistance * 0.15, 40)}px)`;
+          panel.style.opacity = `${Math.max(1 - resistance / 600, 0.6)}`;
+          if (resistance > 320) {
+            scrollLocked = true;
+            resetStretch();
+            scrollToPanel(getCurrentIndex() - 1);
+            setTimeout(() => { scrollLocked = false; }, 500);
+          }
         }
+        if (!atBottom && !atTop) resetStretch();
       }, { passive: false });
     });
 
@@ -133,25 +164,46 @@ function initTributeNavigation() {
       const atTop = track.scrollTop <= 2;
       if (event.deltaY > 0 && atBottom) {
         event.preventDefault();
-        scrollLocked = true;
-        scrollToPanel(getCurrentIndex() + 1);
-        setTimeout(() => { scrollLocked = false; }, 400);
+        direction = 1;
+        resistance += event.deltaY;
+        const panel = panels[getCurrentIndex()];
+        panel.classList.add('is-stretching');
+        panel.style.transform = `translateY(${-Math.min(resistance * 0.15, 40)}px)`;
+        panel.style.opacity = `${Math.max(1 - resistance / 600, 0.6)}`;
+        if (resistance > 320) {
+          scrollLocked = true;
+          resetStretch();
+          scrollToPanel(getCurrentIndex() + 1);
+          setTimeout(() => { scrollLocked = false; }, 500);
+        }
       }
       if (event.deltaY < 0 && atTop) {
         event.preventDefault();
-        scrollLocked = true;
-        scrollToPanel(getCurrentIndex() - 1);
-        setTimeout(() => { scrollLocked = false; }, 400);
+        direction = -1;
+        resistance += Math.abs(event.deltaY);
+        const panel = panels[getCurrentIndex()];
+        panel.classList.add('is-stretching');
+        panel.style.transform = `translateY(${Math.min(resistance * 0.15, 40)}px)`;
+        panel.style.opacity = `${Math.max(1 - resistance / 600, 0.6)}`;
+        if (resistance > 320) {
+          scrollLocked = true;
+          resetStretch();
+          scrollToPanel(getCurrentIndex() - 1);
+          setTimeout(() => { scrollLocked = false; }, 500);
+        }
       }
+      if (!atBottom && !atTop) resetStretch();
     }, { passive: false });
 
     document.addEventListener('keydown', (event) => {
       if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
         event.preventDefault();
+        resetStretch();
         scrollToPanel(getCurrentIndex() + 1);
       }
       if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
         event.preventDefault();
+        resetStretch();
         scrollToPanel(getCurrentIndex() - 1);
       }
     });

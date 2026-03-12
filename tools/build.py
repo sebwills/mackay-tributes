@@ -228,39 +228,33 @@ def build():
 
     # Category pages
     category_keys = sorted(categories.keys())
-    for idx, section in enumerate(category_keys):
+    for section in category_keys:
         items = categories[section]
         slug = slugify(section)
-        prev_section = category_keys[idx - 1] if idx > 0 else category_keys[-1]
-        next_section = category_keys[idx + 1] if idx + 1 < len(category_keys) else category_keys[0]
         desc = CATEGORY_INFO.get(section, "")
-        panels = []
+        cards = []
         for tribute in items:
             tribute_html = format_paragraphs(tribute["tribute"])
             author = html.escape(tribute["name"] or "Anonymous")
             how = html.escape(tribute["how"]) if tribute["how"] else ""
             meta = f"<strong>{author}</strong>" + (f" — {how}" if how else "")
-            panels.append(
-                f"<section class=\"tribute-panel\">\n"
-                f"  <div class=\"tribute-body\">{tribute_html}</div>\n"
+            cards.append(
+                f"<article class=\"tribute-card\">\n"
+                f"  <div class=\"tribute-text\">{tribute_html}</div>\n"
                 f"  <div class=\"tribute-meta\">{meta}</div>\n"
-                f"</section>"
+                f"</article>"
             )
 
-        panels_markup = "\n".join(panels)
+        cards_markup = "\n".join(cards)
         content = f"""
 <section class=\"tribute-page\">
   <div class=\"tribute-nav\">
     <a class=\"button\" href=\"../index.html\">Back to categories</a>
-    <button class=\"button\" data-tribute-prev>Previous</button>
-    <button class=\"button primary\" data-tribute-next>Next</button>
   </div>
-  <div class=\"tribute-shell\" data-prev-page=\"../{slugify(prev_section)}/index.html\" data-next-page=\"../{slugify(next_section)}/index.html\">
-    <h1 class=\"section-title\">{html.escape(section.title().replace('_', ' '))}</h1>
-    <p class=\"caption\">{html.escape(desc)}</p>
-    <div class=\"tribute-track\" data-tribute-track data-shuffle=\"true\">
-      {panels_markup}
-    </div>
+  <h1 class=\"section-title\">{html.escape(section.title().replace('_', ' '))}</h1>
+  <p class=\"caption\">{html.escape(desc)}</p>
+  <div class=\"tribute-list\" data-shuffle=\"true\">
+    {cards_markup}
   </div>
 </section>
 """

@@ -248,6 +248,25 @@ body {
   background: var(--bg-accent);
   box-shadow: 0 16px 30px var(--shadow);
   margin-bottom: 24px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.tribute-panel.is-stretching {
+  opacity: 0.7;
+}
+
+.tribute-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.tribute-card {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--bg-accent);
+  box-shadow: 0 16px 30px var(--shadow);
+  padding: 28px;
 }
 
 .tribute-text {
@@ -314,23 +333,19 @@ body {
   }
 }
 
-body.category-page,
 body.author-page {
   overflow: hidden;
 }
 
-body.category-page .site-main,
 body.author-page .site-main {
   overflow: hidden;
 }
 
 @media (max-width: 900px) {
-  body.category-page,
   body.author-page {
     overflow: auto;
   }
 
-  body.category-page .site-main,
   body.author-page .site-main {
     overflow: visible;
   }
