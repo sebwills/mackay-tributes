@@ -466,6 +466,24 @@ body.category-page .site-main {
   flex: 0 0 auto;
 }
 
+.tribute-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.tribute-header .title-block {
+  max-width: 720px;
+}
+
+@media (max-width: 900px) {
+  .tribute-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
 @media (max-width: 900px) {
   body.author-page,
   body.category-page {

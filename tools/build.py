@@ -270,11 +270,15 @@ def build():
         cards_markup = "\n".join(cards)
         content = f"""
 <section class=\"tribute-page\">
-  <div class=\"tribute-nav\">
-    <a class=\"button\" href=\"../index.html\">Back to categories</a>
+  <div class=\"tribute-header\">
+    <div class=\"title-block\">
+      <h1 class=\"section-title\">{html.escape(section.title().replace('_', ' '))}</h1>
+      <p class=\"caption\">{html.escape(desc)}</p>
+    </div>
+    <div class=\"tribute-nav\">
+      <a class=\"button\" href=\"../index.html\">Back to categories</a>
+    </div>
   </div>
-  <h1 class=\"section-title\">{html.escape(section.title().replace('_', ' '))}</h1>
-  <p class=\"caption\">{html.escape(desc)}</p>
   <div class=\"tribute-list\" data-shuffle=\"true\">
     {cards_markup}
   </div>
@@ -352,13 +356,17 @@ def build():
         panels_markup = "\n".join(panels)
         content = f"""
 <section class=\"tribute-page\">
-  <div class=\"tribute-nav\">
-    <a class=\"button\" href=\"../index.html\">Back to authors</a>
-    <button class=\"button\" data-tribute-prev>Previous</button>
-    <button class=\"button primary\" data-tribute-next>Next</button>
+  <div class=\"tribute-header\">
+    <div class=\"title-block\">
+      <h1 class=\"section-title\">{html.escape(display)}</h1>
+    </div>
+    <div class=\"tribute-nav\">
+      <a class=\"button\" href=\"../index.html\">Back to authors</a>
+      <button class=\"button\" data-tribute-prev>Previous</button>
+      <button class=\"button primary\" data-tribute-next>Next</button>
+    </div>
   </div>
   <div class=\"tribute-shell\" data-prev-page=\"../{prev_slug}/index.html\" data-next-page=\"../{next_slug}/index.html\">
-    <h1 class=\"section-title\">{html.escape(display)}</h1>
     <div class=\"tribute-track\" data-tribute-track data-shuffle=\"true\">
       {panels_markup}
     </div>
