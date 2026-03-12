@@ -147,16 +147,15 @@ function initTributeNavigation() {
     let resistanceDirection = 1;
 
     const atBottomStrict = () => {
-      const maxScroll = track.scrollHeight - track.clientHeight;
-      if (maxScroll <= 4) return true;
-      return track.scrollTop >= maxScroll - 0.5;
+      const last = panels[panels.length - 1];
+      const meta = last?.querySelector('.tribute-meta');
+      const target = meta || last;
+      const targetBottom = target.getBoundingClientRect().bottom;
+      const viewBottom = track.getBoundingClientRect().bottom;
+      return targetBottom <= viewBottom + 1;
     };
 
-    const atTopStrict = () => {
-      const maxScroll = track.scrollHeight - track.clientHeight;
-      if (maxScroll <= 4) return true;
-      return track.scrollTop <= 0.5;
-    };
+    const atTopStrict = () => track.scrollTop <= 0.5;
 
     track.addEventListener('scroll', () => {
       const now = Date.now();
@@ -203,10 +202,13 @@ function initTributeNavigation() {
     });
 
     track.addEventListener('wheel', (event) => {
-      const scrollTop = track.scrollTop;
-      const maxScroll = track.scrollHeight - track.clientHeight;
-      const atBottom = maxScroll <= 4 || scrollTop >= maxScroll - 0.5;
-      const atTop = maxScroll <= 4 || scrollTop <= 0.5;
+      const lastPanel = panels[panels.length - 1];
+      const lastMeta = lastPanel?.querySelector('.tribute-meta');
+      const lastTarget = lastMeta || lastPanel;
+      const lastTargetBottom = lastTarget.getBoundingClientRect().bottom;
+      const viewBottom = track.getBoundingClientRect().bottom;
+      const atBottom = lastTargetBottom <= viewBottom + 1;
+      const atTop = track.scrollTop <= 0.5;
       lastWheelTime = performance.now();
 
       const now = Date.now();
@@ -248,8 +250,29 @@ function initTributeNavigation() {
   });
 }
 
+function initScrollPanes() {
+  const panes = [];
+  const categoryPane = document.querySelector('.category-page .tribute-list');
+  if (categoryPane) panes.push(categoryPane);
+  const authorPane = document.querySelector('.author-page .tribute-track');
+  if (authorPane) panes.push(authorPane);
+
+  const resize = () => {
+    panes.forEach((pane) => {
+      const rect = pane.getBoundingClientRect();
+      const available = Math.max(120, window.innerHeight - rect.top - 16);
+      pane.style.height = `${available}px`;
+      pane.style.maxHeight = `${available}px`;
+    });
+  };
+
+  resize();
+  window.addEventListener('resize', resize);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initShuffle();
   initCarousel();
   initTributeNavigation();
+  initScrollPanes();
 });
