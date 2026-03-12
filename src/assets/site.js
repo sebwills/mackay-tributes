@@ -71,9 +71,13 @@ function initTributeNavigation() {
     const shell = track.closest('.tribute-shell');
     const prevPage = shell?.dataset.prevPage;
     const nextPage = shell?.dataset.nextPage;
-    let scrollLocked = false;
     let resistance = 0;
-    let direction = 0;
+    let scrolling = false;
+    let edgeHoldUntil = 0;
+    let decayFrame = null;
+    let lastWheelTime = 0;
+    let edgeBottom = false;
+    let edgeTop = false;
 
     const scrollToPanel = (index) => {
       if (index < 0) {
@@ -101,11 +105,79 @@ function initTributeNavigation() {
     const resetStretch = () => {
       panels.forEach((panel) => {
         panel.style.transform = '';
+        panel.style.opacity = '';
         panel.classList.remove('is-stretching');
       });
       resistance = 0;
-      direction = 0;
     };
+
+    const applyStretch = (panel, offset, opacity) => {
+      panel.classList.add('is-stretching');
+      panel.style.transform = `translateY(${offset}px)`;
+      panel.style.opacity = `${opacity}`;
+    };
+
+    const startDecay = () => {
+      if (decayFrame) return;
+      const maxResistance = 600;
+      let prevTime = performance.now();
+      const tick = (now) => {
+        const dt = now - prevTime;
+        prevTime = now;
+        const elapsedSinceWheel = now - lastWheelTime;
+        if (elapsedSinceWheel < 20) {
+          decayFrame = requestAnimationFrame(tick);
+          return;
+        }
+        resistance = Math.max(0, resistance - (dt / 5000) * maxResistance);
+        const panel = resistanceDirection === 1 ? panels[panels.length - 1] : panels[0];
+        if (resistance > 0 && panel) {
+          const offset = resistanceDirection === 1 ? -Math.min(resistance * 0.2, 60) : Math.min(resistance * 0.2, 60);
+          const opacity = Math.max(1 - resistance / 500, 0.4);
+          applyStretch(panel, offset, opacity);
+          decayFrame = requestAnimationFrame(tick);
+        } else {
+          resetStretch();
+          decayFrame = null;
+        }
+      };
+      decayFrame = requestAnimationFrame(tick);
+    };
+
+    let resistanceDirection = 1;
+
+    const atBottomStrict = () => {
+      const maxScroll = track.scrollHeight - track.clientHeight;
+      if (maxScroll <= 4) return true;
+      return track.scrollTop >= maxScroll - 0.5;
+    };
+
+    const atTopStrict = () => {
+      const maxScroll = track.scrollHeight - track.clientHeight;
+      if (maxScroll <= 4) return true;
+      return track.scrollTop <= 0.5;
+    };
+
+    track.addEventListener('scroll', () => {
+      const now = Date.now();
+      if (atBottomStrict()) {
+        if (!edgeBottom) {
+          edgeBottom = true;
+          edgeHoldUntil = now + 1000;
+        }
+      } else {
+        edgeBottom = false;
+      }
+
+      if (atTopStrict()) {
+        if (!edgeTop) {
+          edgeTop = true;
+          edgeHoldUntil = now + 1000;
+        }
+      } else {
+        edgeTop = false;
+      }
+    });
 
     track.closest('.tribute-page').querySelectorAll('[data-tribute-next]').forEach((button) => {
       button.addEventListener('click', () => {
@@ -119,94 +191,60 @@ function initTributeNavigation() {
       });
     });
 
-    track.querySelectorAll('.tribute-body').forEach((body) => {
-      body.addEventListener('wheel', (event) => {
-        if (scrollLocked) return;
-        const atBottom = body.scrollTop + body.clientHeight >= body.scrollHeight - 2;
-        const atTop = body.scrollTop <= 2;
-        if (event.deltaY > 0 && atBottom) {
-          event.preventDefault();
-          direction = 1;
-          resistance += event.deltaY;
-          const panel = panels[getCurrentIndex()];
-          panel.classList.add('is-stretching');
-          panel.style.transform = `translateY(${-Math.min(resistance * 0.15, 40)}px)`;
-          panel.style.opacity = `${Math.max(1 - resistance / 600, 0.6)}`;
-          if (resistance > 320) {
-            scrollLocked = true;
-            resetStretch();
-            scrollToPanel(getCurrentIndex() + 1);
-            setTimeout(() => { scrollLocked = false; }, 500);
-          }
-        }
-        if (event.deltaY < 0 && atTop) {
-          event.preventDefault();
-          direction = -1;
-          resistance += Math.abs(event.deltaY);
-          const panel = panels[getCurrentIndex()];
-          panel.classList.add('is-stretching');
-          panel.style.transform = `translateY(${Math.min(resistance * 0.15, 40)}px)`;
-          panel.style.opacity = `${Math.max(1 - resistance / 600, 0.6)}`;
-          if (resistance > 320) {
-            scrollLocked = true;
-            resetStretch();
-            scrollToPanel(getCurrentIndex() - 1);
-            setTimeout(() => { scrollLocked = false; }, 500);
-          }
-        }
-        if (!atBottom && !atTop) resetStretch();
-      }, { passive: false });
-    });
-
-    track.addEventListener('wheel', (event) => {
-      if (scrollLocked) return;
-      const atBottom = track.scrollTop + track.clientHeight >= track.scrollHeight - 2;
-      const atTop = track.scrollTop <= 2;
-      if (event.deltaY > 0 && atBottom) {
-        event.preventDefault();
-        direction = 1;
-        resistance += event.deltaY;
-        const panel = panels[getCurrentIndex()];
-        panel.classList.add('is-stretching');
-        panel.style.transform = `translateY(${-Math.min(resistance * 0.15, 40)}px)`;
-        panel.style.opacity = `${Math.max(1 - resistance / 600, 0.6)}`;
-        if (resistance > 320) {
-          scrollLocked = true;
-          resetStretch();
-          scrollToPanel(getCurrentIndex() + 1);
-          setTimeout(() => { scrollLocked = false; }, 500);
-        }
-      }
-      if (event.deltaY < 0 && atTop) {
-        event.preventDefault();
-        direction = -1;
-        resistance += Math.abs(event.deltaY);
-        const panel = panels[getCurrentIndex()];
-        panel.classList.add('is-stretching');
-        panel.style.transform = `translateY(${Math.min(resistance * 0.15, 40)}px)`;
-        panel.style.opacity = `${Math.max(1 - resistance / 600, 0.6)}`;
-        if (resistance > 320) {
-          scrollLocked = true;
-          resetStretch();
-          scrollToPanel(getCurrentIndex() - 1);
-          setTimeout(() => { scrollLocked = false; }, 500);
-        }
-      }
-      if (!atBottom && !atTop) resetStretch();
-    }, { passive: false });
-
     document.addEventListener('keydown', (event) => {
       if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
         event.preventDefault();
-        resetStretch();
         scrollToPanel(getCurrentIndex() + 1);
       }
       if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
         event.preventDefault();
-        resetStretch();
         scrollToPanel(getCurrentIndex() - 1);
       }
     });
+
+    track.addEventListener('wheel', (event) => {
+      const scrollTop = track.scrollTop;
+      const maxScroll = track.scrollHeight - track.clientHeight;
+      const atBottom = maxScroll <= 4 || scrollTop >= maxScroll - 0.5;
+      const atTop = maxScroll <= 4 || scrollTop <= 0.5;
+      lastWheelTime = performance.now();
+
+      const now = Date.now();
+      if (event.deltaY > 0 && atBottom) {
+        event.preventDefault();
+        resistanceDirection = 1;
+        if (now < edgeHoldUntil) return;
+        resistance += event.deltaY;
+        const panel = panels[panels.length - 1];
+        applyStretch(panel, -Math.min(resistance * 0.2, 60), Math.max(1 - resistance / 500, 0.4));
+        if (resistance > 520 && !scrolling) {
+          scrolling = true;
+          resetStretch();
+          edgeHoldUntil = 0;
+          scrollToPanel(getCurrentIndex() + 1);
+          setTimeout(() => { scrolling = false; }, 500);
+        }
+        startDecay();
+      } else if (event.deltaY < 0 && atTop) {
+        event.preventDefault();
+        resistanceDirection = -1;
+        if (now < edgeHoldUntil) return;
+        resistance += Math.abs(event.deltaY);
+        const panel = panels[0];
+        applyStretch(panel, Math.min(resistance * 0.2, 60), Math.max(1 - resistance / 500, 0.4));
+        if (resistance > 520 && !scrolling) {
+          scrolling = true;
+          resetStretch();
+          edgeHoldUntil = 0;
+          scrollToPanel(getCurrentIndex() - 1);
+          setTimeout(() => { scrolling = false; }, 500);
+        }
+        startDecay();
+      } else {
+        resetStretch();
+        edgeHoldUntil = 0;
+      }
+    }, { passive: false });
   });
 }
 
