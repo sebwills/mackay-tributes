@@ -11,16 +11,6 @@ ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 DIST = ROOT / "dist"
 
-CATEGORY_INFO = {
-    "CLARITY": "His intellectual strengths, first-principles thinking and insight.",
-    "INFORMATION_THEORY": "His work on information theory (outside ITILA).",
-    "ITILA": "Mentions of the book ITILA and its influence.",
-    "SEWTHA": "Mentions of SEWTHA and sustainability work.",
-    "DASHER": "His work on accessibility for disabled people.",
-    "PERSON": "His humanity, generosity, bravery, campaigning, and genuineness.",
-}
-
-
 def slugify(value: str) -> str:
     value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
     value = value.lower()
@@ -110,6 +100,20 @@ def load_config():
     return json.loads((SRC / "site.json").read_text(encoding="utf-8"))
 
 
+def category_metadata(config: dict) -> dict:
+    metadata = {}
+    for item in config.get("categories", []):
+        key = item.get("key", "").strip()
+        if not key:
+            continue
+        metadata[key] = {
+            "heading": item.get("heading", key.title().replace("_", " ")).strip(),
+            "short_description": item.get("short_description", "").strip(),
+            "long_description": item.get("long_description", "").strip(),
+        }
+    return metadata
+
+
 def load_tributes():
     tributes = []
     with (ROOT / "tributes.csv").open(newline="", encoding="utf-8") as f:
@@ -132,6 +136,7 @@ def build():
     default_title = config.get("site_title", "Tributes")
     header_title = config.get("header_title", default_title)
     hero_title = config.get("hero_title", default_title)
+    category_info = category_metadata(config)
 
     if DIST.exists():
         shutil.rmtree(DIST)
@@ -220,10 +225,12 @@ def build():
     for section, items in sorted(categories.items()):
         slug = slugify(section)
         count = len(items)
-        desc = CATEGORY_INFO.get(section, "")
+        info = category_info.get(section, {})
+        heading = info.get("heading", section.title().replace("_", " "))
+        desc = info.get("short_description", "")
         category_cards.append(
             f"<a class=\"card\" href=\"./{slug}/index.html\">\n"
-            f"  <h3 class=\"card-title\">{html.escape(section.title().replace('_', ' '))}</h3>\n"
+            f"  <h3 class=\"card-title\">{html.escape(heading)}</h3>\n"
             f"  <p>{html.escape(desc)}</p>\n"
             f"  <div class=\"card-meta\">{count} tributes</div>\n"
             f"</a>"
@@ -257,7 +264,10 @@ def build():
     for section in category_keys:
         items = categories[section]
         slug = slugify(section)
-        desc = CATEGORY_INFO.get(section, "")
+        info = category_info.get(section, {})
+        heading = info.get("heading", section.title().replace("_", " "))
+        short_desc = info.get("short_description", "")
+        long_desc = info.get("long_description", short_desc)
         cards = []
         for tribute in items:
             tribute_html = format_paragraphs(tribute["tribute"])
@@ -276,8 +286,8 @@ def build():
 <section class=\"tribute-page\">
   <div class=\"tribute-header\">
     <div class=\"title-block\">
-      <h1 class=\"section-title\">{html.escape(section.title().replace('_', ' '))}</h1>
-      <p class=\"caption\">{html.escape(desc)}</p>
+      <h1 class=\"section-title\">{html.escape(heading)}</h1>
+      <p class=\"caption\">{html.escape(long_desc)}</p>
     </div>
     <div class=\"tribute-nav\">
       <a class=\"button\" href=\"../index.html\">Back to categories</a>
@@ -291,9 +301,9 @@ def build():
 
         page_html = render_page(
             template,
-            title=f"{section.title().replace('_', ' ')} tributes",
+            title=f"{heading} tributes",
             canonical=f"{base_url}/category/{slug}/" if base_url else "",
-            description=f"Tributes in the {section} category.",
+            description=short_desc or f"Tributes in the {heading} category.",
             asset_prefix=asset_prefix(2),
             page_class="category-page",
             site_title=html.escape(header_title) + draft_badge,
