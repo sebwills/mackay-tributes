@@ -1,3 +1,4 @@
+import argparse
 import csv
 import html
 import json
@@ -6,10 +7,14 @@ import re
 import shutil
 import unicodedata
 from pathlib import Path
+from urllib.error import URLError
+from urllib.request import urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 DIST = ROOT / "dist"
+CATEGORY_INTROS = SRC / "category_intros"
+INTRO_URL_TEMPLATE = "https://raw.githubusercontent.com/pilgrimbeart/mackay/refs/heads/main/intro_{key}.md"
 
 def slugify(value: str) -> str:
     value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
@@ -109,9 +114,48 @@ def category_metadata(config: dict) -> dict:
         metadata[key] = {
             "heading": item.get("heading", key.title().replace("_", " ")).strip(),
             "short_description": item.get("short_description", "").strip(),
-            "long_description": item.get("long_description", "").strip(),
         }
     return metadata
+
+
+def category_intro_path(key: str) -> Path:
+    return CATEGORY_INTROS / f"intro_{key}.md"
+
+
+def download_category_intro(key: str):
+    url = INTRO_URL_TEMPLATE.format(key=key)
+    target = category_intro_path(key)
+    CATEGORY_INTROS.mkdir(parents=True, exist_ok=True)
+    with urlopen(url) as response:
+        content = response.read().decode("utf-8")
+    target.write_text(content, encoding="utf-8")
+
+
+def ensure_category_intro_files(category_keys, download_missing: bool):
+    missing = [key for key in category_keys if not category_intro_path(key).exists()]
+    if not missing:
+        return
+    if not download_missing:
+        missing_list = ", ".join(missing)
+        raise SystemExit(
+            "Missing category intro file(s): "
+            f"{missing_list}. Run `python3 tools/build.py --download-category-intros` to fetch them."
+        )
+    for key in missing:
+        download_category_intro(key)
+
+
+def extract_intro_body(markdown: str) -> str:
+    match = re.search(r"^# .*$", markdown, flags=re.MULTILINE)
+    if not match:
+        return markdown.strip()
+    return markdown[match.end():].strip()
+
+
+def load_category_intro_html(key: str) -> str:
+    path = category_intro_path(key)
+    body = extract_intro_body(path.read_text(encoding="utf-8"))
+    return format_paragraphs(body)
 
 
 def load_tributes():
@@ -129,7 +173,7 @@ def load_tributes():
     return tributes
 
 
-def build():
+def build(download_category_intros: bool = False):
     config = load_config()
     base_url = config.get("base_url", "").rstrip("/")
     template = load_template("page.html")
@@ -159,6 +203,8 @@ def build():
     for tribute in tributes:
         categories.setdefault(tribute["section"], []).append(tribute)
         authors.setdefault(tribute["author_slug"], []).append(tribute)
+
+    ensure_category_intro_files(sorted(categories.keys()), download_category_intros)
 
     # Home page
     summary_html = "\n".join(f"<p>{html.escape(line)}</p>" for line in config.get("summary", []))
@@ -267,7 +313,7 @@ def build():
         info = category_info.get(section, {})
         heading = info.get("heading", section.title().replace("_", " "))
         short_desc = info.get("short_description", "")
-        long_desc = info.get("long_description", short_desc)
+        intro_html = load_category_intro_html(section)
         cards = []
         for tribute in items:
             tribute_html = format_paragraphs(tribute["tribute"])
@@ -287,7 +333,7 @@ def build():
   <div class=\"tribute-header\">
     <div class=\"title-block\">
       <h1 class=\"section-title\">{html.escape(heading)}</h1>
-      <p class=\"caption\">{html.escape(long_desc)}</p>
+      {intro_html}
     </div>
     <div class=\"tribute-nav\">
       <a class=\"button\" href=\"../index.html\">Back to categories</a>
@@ -401,6 +447,19 @@ def build():
         )
         write_page(DIST / "author" / slug / "index.html", page_html)
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--download-category-intros",
+        action="store_true",
+        help="Download missing category intro markdown files before building.",
+    )
+    return parser.parse_args()
+
 
 if __name__ == "__main__":
-    build()
+    args = parse_args()
+    try:
+        build(download_category_intros=args.download_category_intros)
+    except URLError as exc:
+        raise SystemExit(f"Failed to download category intro files: {exc}") from exc

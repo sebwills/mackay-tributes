@@ -12,38 +12,32 @@
     {
       "key": "CLARITY",
       "heading": "Clarity of thought",
-      "short_description": "His intellectual strengths, first-principles thinking and insight.",
-      "long_description": "Tributes focused on David MacKay's intellectual clarity, first-principles thinking, and gift for insight."
+      "short_description": "His intellectual strengths, first-principles thinking and insight."
     },
     {
       "key": "INFORMATION_THEORY",
       "heading": "The Inference Group",
-      "short_description": "David's wide-ranging research and collaboration in information theory.",
-      "long_description": "Tributes about David MacKay's information theory work beyond the book ITILA, including coding, inference, and related research."
+      "short_description": "David's wide-ranging research and collaboration in information theory."
     },
     {
       "key": "ITILA",
       "heading": "ITILA",
-      "short_description": "His book 'Information Theory, Inference and Learning Algorithms' and its influence.",
-      "long_description": "Tributes describing the impact of Information Theory, Inference, and Learning Algorithms on readers, students, and researchers."
+      "short_description": "His book 'Information Theory, Inference and Learning Algorithms' and its influence."
     },
     {
       "key": "SEWTHA",
       "heading": "SEWTHA",
-      "short_description": "Sustainable Energy - Without the Hot Air",
-      "long_description": "Tributes about Sustainable Energy Without the Hot Air, David's sustainability work, and his influence on climate and energy thinking."
+      "short_description": "Sustainable Energy - Without the Hot Air"
     },
     {
       "key": "DASHER",
       "heading": "Dasher",
-      "short_description": "His unique user-inteface for writing.",
-      "long_description": "Tributes about Dasher and David MacKay's work on accessibility, assistive technology, and communication tools."
+      "short_description": "His unique user-inteface for writing."
     },
     {
       "key": "PERSON",
       "heading": "Humanity",
-      "short_description": "His humanity, generosity, bravery, campaigning, and genuineness.",
-      "long_description": "Tributes centered on David himself: his humanity, generosity, bravery, campaigning, and personal presence."
+      "short_description": "His humanity, generosity, bravery, campaigning, and genuineness."
     }
   ]
 }
