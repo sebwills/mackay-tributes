@@ -129,6 +129,9 @@ def build():
     config = load_config()
     base_url = config.get("base_url", "").rstrip("/")
     template = load_template("page.html")
+    default_title = config.get("site_title", "Tributes")
+    header_title = config.get("header_title", default_title)
+    hero_title = config.get("hero_title", default_title)
 
     if DIST.exists():
         shutil.rmtree(DIST)
@@ -171,7 +174,7 @@ def build():
     home_content = f"""
 <section class=\"hero\">
   <div>
-    <h1>{html.escape(config.get('site_title', 'Tributes'))}</h1>
+    <h1>{html.escape(hero_title)}</h1>
     {summary_html}
     <div class=\"cta\">
       <a class=\"button primary\" href=\"./category/index.html\">Browse by category</a>
@@ -201,12 +204,12 @@ def build():
     draft_badge = "<span class=\"draft-badge\">DRAFT</span>" if config.get("is_draft") else ""
     home_html = render_page(
         template,
-        title=config.get("site_title", "Tributes"),
+        title=hero_title,
         canonical=f"{base_url}/" if base_url else "",
         description="Tributes collected for Sir David MacKay FRS.",
         asset_prefix=asset_prefix(0),
         page_class="home",
-        site_title=html.escape(config.get("site_title", "Tributes")) + draft_badge,
+        site_title=html.escape(header_title) + draft_badge,
         content=home_content,
         page_script="",
     )
@@ -243,7 +246,7 @@ def build():
         description="Tribute categories.",
         asset_prefix=asset_prefix(1),
         page_class="category-index",
-        site_title=html.escape(config.get("site_title", "Tributes")) + draft_badge,
+        site_title=html.escape(header_title) + draft_badge,
         content=category_index_content,
         page_script="",
     )
@@ -293,7 +296,7 @@ def build():
             description=f"Tributes in the {section} category.",
             asset_prefix=asset_prefix(2),
             page_class="category-page",
-            site_title=html.escape(config.get("site_title", "Tributes")) + draft_badge,
+            site_title=html.escape(header_title) + draft_badge,
             content=content,
             page_script="",
         )
@@ -329,7 +332,7 @@ def build():
         description="Tributes by author.",
         asset_prefix=asset_prefix(1),
         page_class="author-index",
-        site_title=html.escape(config.get("site_title", "Tributes")) + draft_badge,
+        site_title=html.escape(header_title) + draft_badge,
         content=author_index_content,
         page_script="",
     )
@@ -382,7 +385,7 @@ def build():
             description=f"Tributes by {display}.",
             asset_prefix=asset_prefix(2),
             page_class="author-page",
-            site_title=html.escape(config.get("site_title", "Tributes")) + draft_badge,
+            site_title=html.escape(header_title) + draft_badge,
             content=content,
             page_script="",
         )
