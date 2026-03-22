@@ -246,9 +246,9 @@ def build(download_category_intros: bool = False):
     <h1>{html.escape(hero_title)}</h1>
     {summary_html}
     <div class=\"cta\">
-      <a class=\"button primary\" href=\"./category/index.html\">Browse by category</a>
-      <a class=\"button\" href=\"./author/index.html\">Browse by author</a>
-      <a class=\"button\" href=\"./carousel/index.html\">Carousel</a>
+      <a class=\"button primary\" href=\"./category/\">Browse by category</a>
+      <a class=\"button\" href=\"./author/\">Browse by author</a>
+      <a class=\"button\" href=\"./carousel/\">Carousel</a>
       <a class=\"button\" href=\"https://forms.gle/mtSp5WvYWQ6MYse87\">Submit a Tribute</a>
     </div>
   </div>
@@ -374,7 +374,7 @@ def build(download_category_intros: bool = False):
         heading = info.get("heading", section.title().replace("_", " "))
         desc = info.get("short_description", "")
         category_cards.append(
-            f"<a class=\"card\" href=\"./{slug}/index.html\">\n"
+            f"<a class=\"card\" href=\"./{slug}/\">\n"
             f"  <h3 class=\"card-title\">{html.escape(heading)}</h3>\n"
             f"  <p>{html.escape(desc)}</p>\n"
             f"  <div class=\"card-meta\">{count} tributes</div>\n"
@@ -434,7 +434,7 @@ def build(download_category_intros: bool = False):
       <h1 class=\"section-title\">{html.escape(heading)}</h1>
     </div>
     <div class=\"tribute-nav\">
-      <a class=\"button\" href=\"../index.html\">Back to categories</a>
+      <a class=\"button\" href=\"../\">Back to categories</a>
     </div>
   </div>
   <div class=\"tribute-list\" data-shuffle=\"true\">
@@ -464,7 +464,7 @@ def build(download_category_intros: bool = False):
         count = len(items)
         meta = f"<div class=\"card-meta\">{count} tribute{'s' if count != 1 else ''}</div>" if count > 1 else ""
         author_cards.append(
-            f"<a class=\"card\" href=\"./{slug}/index.html\">\n"
+            f"<a class=\"card\" href=\"./{slug}/\">\n"
             f"  <h3 class=\"card-title\">{html.escape(display)}</h3>\n"
             f"  {meta}\n"
             f"</a>"
@@ -521,12 +521,12 @@ def build(download_category_intros: bool = False):
       <h1 class=\"section-title\">{html.escape(display)}</h1>
     </div>
     <div class=\"tribute-nav\">
-      <a class=\"button\" href=\"../index.html\">Back to authors</a>
+      <a class=\"button\" href=\"../\">Back to authors</a>
       <button class=\"button\" data-tribute-prev>Previous</button>
       <button class=\"button primary\" data-tribute-next>Next</button>
     </div>
   </div>
-  <div class=\"tribute-shell\" data-prev-page=\"../{prev_slug}/index.html\" data-next-page=\"../{next_slug}/index.html\">
+  <div class=\"tribute-shell\" data-prev-page=\"../{prev_slug}/\" data-next-page=\"../{next_slug}/\">
     <div class=\"tribute-track\" data-tribute-track data-shuffle=\"true\">
       {panels_markup}
     </div>

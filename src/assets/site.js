@@ -6,6 +6,30 @@ function shuffleInPlace(nodes) {
   return nodes;
 }
 
+function localFilePath(href) {
+  if (window.location.protocol !== 'file:') return href;
+  if (!href || href.startsWith('http://') || href.startsWith('https://') || href.startsWith('mailto:') || href.startsWith('#')) {
+    return href;
+  }
+  return href.endsWith('/') ? `${href}index.html` : href;
+}
+
+function initLocalFileLinks() {
+  if (window.location.protocol !== 'file:') return;
+
+  document.querySelectorAll('a[href]').forEach((link) => {
+    link.href = localFilePath(link.getAttribute('href'));
+  });
+
+  document.querySelectorAll('[data-prev-page]').forEach((node) => {
+    node.dataset.prevPage = localFilePath(node.dataset.prevPage);
+  });
+
+  document.querySelectorAll('[data-next-page]').forEach((node) => {
+    node.dataset.nextPage = localFilePath(node.dataset.nextPage);
+  });
+}
+
 function initShuffle() {
   document.querySelectorAll('[data-shuffle="true"]').forEach((container) => {
     const fixedItems = Array.from(container.children).filter((item) => item.dataset.shuffleFixed === 'true');
@@ -489,6 +513,7 @@ function initShowcase() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  initLocalFileLinks();
   initShuffle();
   initCarousel();
   initTributeNavigation();
