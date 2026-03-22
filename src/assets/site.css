@@ -254,7 +254,7 @@ body.showcase-page {
 .showcase-card-inner {
   --showcase-padding: clamp(24px, 4vw, 52px);
   --showcase-tribute-size: 42px;
-  --showcase-meta-size: 22px;
+  --showcase-meta-size: 44px;
   --showcase-line-height: 1.34;
   border: 1px solid var(--line);
   border-radius: 24px;
