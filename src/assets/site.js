@@ -321,7 +321,7 @@ function initShowcase() {
 
   const durationFor = (item) => {
     const words = Number(item.dataset.words) || 0;
-    const baseSeconds = Math.max(10, Math.min(50, 6 + words / 2.8));
+    const baseSeconds = Math.max(10, Math.min(90, 6 + words / 2.8));
     return Math.round((baseSeconds * 1000) / speed);
   };
 
@@ -334,6 +334,11 @@ function initShowcase() {
     if (tribute) {
       tribute.style.transition = '';
       tribute.style.transform = 'translateY(0)';
+    }
+    const progress = item.querySelector('[data-showcase-progress]');
+    if (progress) {
+      progress.style.transition = '';
+      progress.style.transform = 'scaleX(1)';
     }
   };
 
@@ -421,6 +426,14 @@ function initShowcase() {
     items.forEach((item) => clearMotion(item));
     const layout = fitCard(nextItem);
     startMotion(nextItem, layout.displayDuration, layout.overflow);
+    const progress = nextItem.querySelector('[data-showcase-progress]');
+    if (progress) {
+      progress.style.transform = 'scaleX(1)';
+      // Force layout so the timer bar reliably restarts on repeated shows.
+      progress.getBoundingClientRect();
+      progress.style.transition = `transform ${layout.displayDuration}ms linear`;
+      progress.style.transform = 'scaleX(0)';
+    }
     items.forEach((item, itemIndex) => {
       item.classList.toggle('is-active', itemIndex === nextIndex);
     });

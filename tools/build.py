@@ -299,6 +299,7 @@ def build(download_category_intros: bool = False):
             f"      <div class=\"showcase-tribute\">{tribute_html}</div>\n"
             f"    </div>\n"
             f"    <div class=\"showcase-meta\">{meta_line}</div>\n"
+            f"    <div class=\"showcase-progress\" aria-hidden=\"true\"><div class=\"showcase-progress-bar\" data-showcase-progress></div></div>\n"
             f"  </div>\n"
             f"</article>"
         )
