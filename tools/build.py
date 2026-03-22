@@ -333,13 +333,13 @@ def build(download_category_intros: bool = False):
   <div class=\"tribute-header\">
     <div class=\"title-block\">
       <h1 class=\"section-title\">{html.escape(heading)}</h1>
-      {intro_html}
     </div>
     <div class=\"tribute-nav\">
       <a class=\"button\" href=\"../index.html\">Back to categories</a>
     </div>
   </div>
   <div class=\"tribute-list\" data-shuffle=\"true\">
+    <div class=\"category-intro\" data-shuffle-fixed=\"true\">{intro_html}</div>
     {cards_markup}
   </div>
 </section>

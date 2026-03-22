@@ -8,8 +8,9 @@ function shuffleInPlace(nodes) {
 
 function initShuffle() {
   document.querySelectorAll('[data-shuffle="true"]').forEach((container) => {
-    const items = Array.from(container.children);
-    shuffleInPlace(items).forEach((item) => container.appendChild(item));
+    const fixedItems = Array.from(container.children).filter((item) => item.dataset.shuffleFixed === 'true');
+    const items = Array.from(container.children).filter((item) => item.dataset.shuffleFixed !== 'true');
+    container.replaceChildren(...fixedItems, ...shuffleInPlace(items));
   });
 }
 

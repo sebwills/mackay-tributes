@@ -306,6 +306,15 @@ body {
   max-width: none;
 }
 
+.category-intro {
+  max-width: 720px;
+  margin-bottom: 8px;
+}
+
+.category-intro p {
+  margin-top: 0;
+}
+
 .acronym {
   position: relative;
   border-bottom: 1px dotted var(--accent);
