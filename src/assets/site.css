@@ -307,8 +307,7 @@ body {
 }
 
 .category-intro {
-  max-width: 720px;
-  margin-bottom: 8px;
+  margin: 0 20px 8px;
 }
 
 .category-intro p {
