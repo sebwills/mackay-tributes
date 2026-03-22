@@ -248,6 +248,8 @@ def build(download_category_intros: bool = False):
     <div class=\"cta\">
       <a class=\"button primary\" href=\"./category/index.html\">Browse by category</a>
       <a class=\"button\" href=\"./author/index.html\">Browse by author</a>
+      <a class=\"button\" href=\"./carousel/index.html\">Carousel</a>
+      <a class=\"button\" href=\"https://forms.gle/mtSp5WvYWQ6MYse87\">Submit a Tribute</a>
     </div>
   </div>
   <div class=\"hero-photo\">
@@ -257,7 +259,6 @@ def build(download_category_intros: bool = False):
 </section>
 
 <section>
-  <h2 class=\"section-title\">A few voices from the archive</h2>
   <div class=\"carousel\" data-carousel>
     <div class=\"carousel-controls\">
       <button class=\"button\" data-carousel-prev>Previous</button>
