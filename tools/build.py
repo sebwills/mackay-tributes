@@ -67,13 +67,27 @@ def enrich_acronyms(text: str) -> str:
         key = match.group(0)
         if key == "SEWTHA":
             return (
-                '<span class="acronym" data-tooltip="Sustainable Energy Without the Hot Air">'
-                '<a href="https://withouthotair.com">SEWTHA</a></span>'
+                '<span class="acronym" data-acronym>'
+                '<button class="acronym-trigger" type="button" aria-expanded="false">SEWTHA</button>'
+                '<span class="acronym-popover" hidden>'
+                '<a class="acronym-link" href="https://withouthotair.com" target="_blank" rel="noreferrer noopener">'
+                'Sustainable Energy Without the Hot Air&nbsp;<span class="acronym-link-icon" aria-hidden="true">&#10548;</span>'
+                '</a>'
+                '<button class="acronym-close" type="button" aria-label="Close expanded name">x</button>'
+                '</span>'
+                '</span>'
             )
         if key == "ITILA":
             return (
-                '<span class="acronym" data-tooltip="Information Theory, Inference, and Learning Algorithms">'
-                '<a href="https://www.inference.org.uk/mackay/itila/book.html">ITILA</a></span>'
+                '<span class="acronym" data-acronym>'
+                '<button class="acronym-trigger" type="button" aria-expanded="false">ITILA</button>'
+                '<span class="acronym-popover" hidden>'
+                '<a class="acronym-link" href="https://www.inference.org.uk/mackay/itila/book.html" target="_blank" rel="noreferrer noopener">'
+                'Information Theory, Inference, and Learning Algorithms&nbsp;<span class="acronym-link-icon" aria-hidden="true">&#10548;</span>'
+                '</a>'
+                '<button class="acronym-close" type="button" aria-label="Close expanded name">x</button>'
+                '</span>'
+                '</span>'
             )
         return key
 

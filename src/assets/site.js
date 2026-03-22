@@ -38,6 +38,88 @@ function initShuffle() {
   });
 }
 
+function initAcronyms() {
+  const acronyms = Array.from(document.querySelectorAll('[data-acronym]'));
+  if (acronyms.length === 0) return;
+
+  const updatePopoverPosition = (node) => {
+    const popover = node.querySelector('.acronym-popover');
+    if (!popover || popover.hidden) return;
+    popover.style.setProperty('--acronym-popover-shift', '0px');
+    const margin = 12;
+    const rect = popover.getBoundingClientRect();
+    let shift = 0;
+    if (rect.left < margin) {
+      shift = margin - rect.left;
+    } else if (rect.right > window.innerWidth - margin) {
+      shift = window.innerWidth - margin - rect.right;
+    }
+    popover.style.setProperty('--acronym-popover-shift', `${shift}px`);
+  };
+
+  const closeAcronym = (node) => {
+    const trigger = node.querySelector('.acronym-trigger');
+    const popover = node.querySelector('.acronym-popover');
+    if (!trigger || !popover) return;
+    trigger.setAttribute('aria-expanded', 'false');
+    popover.hidden = true;
+    popover.style.setProperty('--acronym-popover-shift', '0px');
+    node.classList.remove('is-open');
+  };
+
+  const openAcronym = (node) => {
+    acronyms.forEach((item) => {
+      if (item !== node) closeAcronym(item);
+    });
+    const trigger = node.querySelector('.acronym-trigger');
+    const popover = node.querySelector('.acronym-popover');
+    if (!trigger || !popover) return;
+    trigger.setAttribute('aria-expanded', 'true');
+    popover.hidden = false;
+    node.classList.add('is-open');
+    updatePopoverPosition(node);
+  };
+
+  acronyms.forEach((node) => {
+    const trigger = node.querySelector('.acronym-trigger');
+    const close = node.querySelector('.acronym-close');
+    if (!trigger || !close) return;
+
+    trigger.addEventListener('click', (event) => {
+      event.preventDefault();
+      const isOpen = trigger.getAttribute('aria-expanded') === 'true';
+      if (isOpen) {
+        closeAcronym(node);
+      } else {
+        openAcronym(node);
+      }
+    });
+
+    close.addEventListener('click', (event) => {
+      event.preventDefault();
+      closeAcronym(node);
+      trigger.focus();
+    });
+  });
+
+  document.addEventListener('click', (event) => {
+    acronyms.forEach((node) => {
+      if (!node.contains(event.target)) {
+        closeAcronym(node);
+      }
+    });
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    acronyms.forEach((node) => closeAcronym(node));
+  });
+
+  window.addEventListener('resize', () => {
+    acronyms.forEach((node) => updatePopoverPosition(node));
+  });
+}
+
 function initCarousel() {
   const carousel = document.querySelector('[data-carousel]');
   if (!carousel) return;
@@ -515,6 +597,7 @@ function initShowcase() {
 document.addEventListener('DOMContentLoaded', () => {
   initLocalFileLinks();
   initShuffle();
+  initAcronyms();
   initCarousel();
   initTributeNavigation();
   initScrollPanes();
