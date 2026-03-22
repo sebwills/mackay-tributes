@@ -158,6 +158,10 @@ def load_category_intro_html(key: str) -> str:
     return format_paragraphs(body)
 
 
+def count_words(text: str) -> int:
+    return len(re.findall(r"\b[\w'-]+\b", text))
+
+
 def load_tributes():
     tributes = []
     with (ROOT / "tributes.csv").open(newline="", encoding="utf-8") as f:
@@ -279,6 +283,56 @@ def build(download_category_intros: bool = False):
         page_script="",
     )
     write_page(DIST / "index.html", home_html)
+
+    # Showcase carousel page
+    showcase_items = []
+    for tribute in tributes:
+        tribute_html = format_paragraphs(tribute["tribute"])
+        meta = html.escape(tribute["name"] or "Anonymous")
+        how = html.escape(tribute["how"]) if tribute["how"] else ""
+        meta_line = f"<strong>{meta}</strong>" + (f" — {how}" if how else "")
+        words = count_words(tribute["tribute"])
+        showcase_items.append(
+            f"<article class=\"showcase-card\" data-showcase-item data-words=\"{words}\">\n"
+            f"  <div class=\"showcase-card-inner\">\n"
+            f"    <div class=\"showcase-tribute\">{tribute_html}</div>\n"
+            f"    <div class=\"showcase-meta\">{meta_line}</div>\n"
+            f"  </div>\n"
+            f"</article>"
+        )
+
+    showcase_markup = "\n".join(showcase_items)
+    showcase_content = f"""
+<section class=\"showcase-page-shell\" data-showcase>
+  <div class=\"showcase-settings\">
+    <button class=\"showcase-gear\" type=\"button\" aria-label=\"Show carousel speed settings\" aria-expanded=\"false\" data-showcase-gear>⚙</button>
+    <div class=\"showcase-controls\" hidden data-showcase-controls>
+      <div class=\"showcase-controls-label\">Advance speed</div>
+      <div class=\"showcase-speed-options\">
+        <button class=\"showcase-speed-button\" type=\"button\" data-showcase-speed=\"0.8\">Slower</button>
+        <button class=\"showcase-speed-button\" type=\"button\" data-showcase-speed=\"1\">Normal</button>
+        <button class=\"showcase-speed-button\" type=\"button\" data-showcase-speed=\"1.25\">Faster</button>
+      </div>
+    </div>
+  </div>
+  <div class=\"showcase-stage\" data-showcase-stage>
+    {showcase_markup}
+  </div>
+</section>
+"""
+
+    showcase_html = render_page(
+        template,
+        title="Tribute Carousel",
+        canonical=f"{base_url}/carousel/" if base_url else "",
+        description="Projection-friendly rotating tribute showcase.",
+        asset_prefix=asset_prefix(1),
+        page_class="showcase-page",
+        site_title=html.escape(header_title) + draft_badge,
+        content=showcase_content,
+        page_script="",
+    )
+    write_page(DIST / "carousel" / "index.html", showcase_html)
 
     # Category index
     category_cards = []
