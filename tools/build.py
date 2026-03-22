@@ -295,7 +295,9 @@ def build(download_category_intros: bool = False):
         showcase_items.append(
             f"<article class=\"showcase-card\" data-showcase-item data-words=\"{words}\">\n"
             f"  <div class=\"showcase-card-inner\">\n"
-            f"    <div class=\"showcase-tribute\">{tribute_html}</div>\n"
+            f"    <div class=\"showcase-tribute-viewport\">\n"
+            f"      <div class=\"showcase-tribute\">{tribute_html}</div>\n"
+            f"    </div>\n"
             f"    <div class=\"showcase-meta\">{meta_line}</div>\n"
             f"  </div>\n"
             f"</article>"

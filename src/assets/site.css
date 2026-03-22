@@ -264,13 +264,28 @@ body.showcase-page {
   padding: var(--showcase-padding);
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   overflow: hidden;
+}
+
+.showcase-tribute-viewport {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.showcase-card.has-overflow .showcase-tribute-viewport {
+  justify-content: flex-start;
 }
 
 .showcase-tribute {
   font-size: var(--showcase-tribute-size);
   line-height: var(--showcase-line-height);
+  transform: translateY(0);
+  will-change: transform;
 }
 
 .showcase-tribute p {
@@ -289,6 +304,7 @@ body.showcase-page {
   font-family: var(--sans);
   font-size: var(--showcase-meta-size);
   color: var(--muted);
+  flex: 0 0 auto;
 }
 
 .showcase-meta strong {

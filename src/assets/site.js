@@ -306,6 +306,7 @@ function initShowcase() {
   let speed = loadSpeed();
   let index = 0;
   let timer = null;
+  const motionTimers = new Map();
 
   const setControlState = () => {
     speedButtons.forEach((button) => {
@@ -324,17 +325,37 @@ function initShowcase() {
     return Math.round((baseSeconds * 1000) / speed);
   };
 
+  const clearMotion = (item) => {
+    const timers = motionTimers.get(item) || [];
+    timers.forEach((id) => window.clearTimeout(id));
+    motionTimers.delete(item);
+    item.classList.remove('has-overflow');
+    const tribute = item.querySelector('.showcase-tribute');
+    if (tribute) {
+      tribute.style.transition = '';
+      tribute.style.transform = 'translateY(0)';
+    }
+  };
+
   const fitCard = (item) => {
     const inner = item.querySelector('.showcase-card-inner');
-    if (!inner) return;
+    const viewport = item.querySelector('.showcase-tribute-viewport');
+    const tribute = item.querySelector('.showcase-tribute');
+    if (!inner || !viewport || !tribute) {
+      return { displayDuration: durationFor(item), overflow: 0 };
+    }
 
     item.classList.add('is-measuring');
+    clearMotion(item);
 
     let tributeSize = window.innerWidth < 700 ? 28 : window.innerWidth < 1100 ? 34 : 42;
     let metaSize = window.innerWidth < 700 ? 16 : 22;
     let padding = window.innerWidth < 700 ? 24 : 40;
     let lineHeight = tributeSize > 36 ? 1.34 : 1.3;
     let attempts = 0;
+    const minTributeSize = window.innerWidth < 700 ? 24 : 28;
+    const minPadding = 20;
+    const minMetaSize = 16;
 
     const apply = () => {
       inner.style.setProperty('--showcase-tribute-size', `${tributeSize}px`);
@@ -345,13 +366,13 @@ function initShowcase() {
 
     apply();
 
-    while (inner.scrollHeight > stage.clientHeight && attempts < 80) {
+    while (tribute.scrollHeight > viewport.clientHeight && attempts < 80) {
       attempts += 1;
-      if (tributeSize > 21) {
+      if (tributeSize > minTributeSize) {
         tributeSize -= 1;
-      } else if (padding > 18) {
+      } else if (padding > minPadding) {
         padding -= 1;
-      } else if (metaSize > 15) {
+      } else if (metaSize > minMetaSize) {
         metaSize -= 0.5;
       } else {
         break;
@@ -360,24 +381,51 @@ function initShowcase() {
       apply();
     }
 
+    const overflow = Math.max(0, tribute.scrollHeight - viewport.clientHeight);
+    const baseDuration = durationFor(item);
+    const displayDuration = overflow > 0 ? Math.max(baseDuration, 24000) : baseDuration;
+
     item.classList.remove('is-measuring');
+    return { displayDuration, overflow };
   };
 
-  const scheduleNext = () => {
+  const startMotion = (item, displayDuration, overflow) => {
+    clearMotion(item);
+    if (overflow <= 0) return;
+
+    const tribute = item.querySelector('.showcase-tribute');
+    if (!tribute) return;
+
+    item.classList.add('has-overflow');
+    const leadIn = 10000;
+    const leadOut = 10000;
+    const scrollDuration = Math.max(4000, displayDuration - leadIn - leadOut);
+
+    const startId = window.setTimeout(() => {
+      tribute.style.transition = `transform ${scrollDuration}ms linear`;
+      tribute.style.transform = `translateY(-${overflow}px)`;
+    }, leadIn);
+
+    motionTimers.set(item, [startId]);
+  };
+
+  const scheduleNext = (displayDuration) => {
     window.clearTimeout(timer);
     timer = window.setTimeout(() => {
       show((index + 1) % items.length);
-    }, durationFor(items[index]));
+    }, displayDuration);
   };
 
   const show = (nextIndex) => {
     const nextItem = items[nextIndex];
-    fitCard(nextItem);
+    items.forEach((item) => clearMotion(item));
+    const layout = fitCard(nextItem);
+    startMotion(nextItem, layout.displayDuration, layout.overflow);
     items.forEach((item, itemIndex) => {
       item.classList.toggle('is-active', itemIndex === nextIndex);
     });
     index = nextIndex;
-    scheduleNext();
+    scheduleNext(layout.displayDuration);
   };
 
   gear.addEventListener('click', () => {
@@ -395,12 +443,12 @@ function initShowcase() {
       speed = Number(button.dataset.showcaseSpeed) || 1;
       saveSpeed(speed);
       setControlState();
-      scheduleNext();
+      show(index);
     });
   });
 
   window.addEventListener('resize', () => {
-    fitCard(items[index]);
+    show(index);
   });
 
   document.addEventListener('visibilitychange', () => {
