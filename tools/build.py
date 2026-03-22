@@ -338,6 +338,33 @@ def build(download_category_intros: bool = False):
     )
     write_page(DIST / "carousel" / "index.html", showcase_html)
 
+    about_content = """
+<section>
+  <h1 class=\"section-title\">About</h1>
+  <div class=\"tribute-card\">
+    <div class=\"tribute-text\">
+      <p>David J. C. MacKay (1967-2016) combined clarity of thought with kindness and curiosity, changing people’s lives directly and indirectly across many different subjects. He had a rare talent for turning messy questions into crisp, checkable reasoning and an insistence on numbers, not adjectives, delivered with wit, warmth and compassion.</p>
+      <p>This website gathers recollections from people who knew David either personally or through his works: as teacher, colleague, collaborator, creator, mentor and friend. Varied in style and length, together they aim to preserve something of his voice and influence.</p>
+      <p>We’ve attempted the hopeless task of organising them by topic, but inevitably there’s a lot of overlap because, as David was fond of saying, “everything is connected”.</p>
+      <p class=\"caption\">Compiled and introduced by Pilgrim Beart with assistance from Seb Wills, March 2026.</p>
+    </div>
+  </div>
+</section>
+"""
+
+    about_html = render_page(
+        template,
+        title="About",
+        canonical=f"{base_url}/about/" if base_url else "",
+        description="About this tribute website for David J. C. MacKay.",
+        asset_prefix=asset_prefix(1),
+        page_class="about-page",
+        site_title=html.escape(header_title) + draft_badge,
+        content=about_content,
+        page_script="",
+    )
+    write_page(DIST / "about" / "index.html", about_html)
+
     # Category index
     category_cards = []
     for section, items in sorted(categories.items()):
