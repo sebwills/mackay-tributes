@@ -173,6 +173,19 @@ def load_tributes():
     return tributes
 
 
+def resolve_author_identity(index_name: str, fallback_name: str):
+    index_name = (index_name or "").strip()
+    fallback_name = (fallback_name or "").strip() or "Anonymous"
+    if "@" in index_name:
+        sort_name, display_name = index_name.split("@", 1)
+        sort_name = sort_name.strip() or fallback_name
+        display_name = display_name.strip() or fallback_name
+    else:
+        sort_name = index_name or fallback_name
+        display_name = index_name or fallback_name
+    return sort_name, display_name
+
+
 def build(download_category_intros: bool = False):
     config = load_config()
     base_url = config.get("base_url", "").rstrip("/")
@@ -194,9 +207,10 @@ def build(download_category_intros: bool = False):
 
     for tribute in tributes:
         tribute["section_slug"] = slugify(tribute["section"])
-        index_name = tribute["name_index"] or tribute["name"]
-        tribute["author_slug"] = slugify(index_name) if index_name else "unknown"
-        tribute["author_sort"] = index_name.lower() if index_name else "unknown"
+        sort_name, display_name = resolve_author_identity(tribute["name_index"], tribute["name"])
+        tribute["author_display"] = display_name
+        tribute["author_slug"] = slugify(display_name)
+        tribute["author_sort"] = sort_name.lower()
 
     categories = {}
     authors = {}
@@ -361,7 +375,7 @@ def build(download_category_intros: bool = False):
     # Author index
     author_cards = []
     for slug, items in sorted(authors.items(), key=lambda x: x[1][0]["author_sort"]):
-        display = items[0]["name"] or "Anonymous"
+        display = items[0]["author_display"]
         count = len(items)
         meta = f"<div class=\"card-meta\">{count} tribute{'s' if count != 1 else ''}</div>" if count > 1 else ""
         author_cards.append(
@@ -398,14 +412,15 @@ def build(download_category_intros: bool = False):
     author_slugs = [slug for slug, _ in sorted(authors.items(), key=lambda x: x[1][0]["author_sort"])]
     for idx, slug in enumerate(author_slugs):
         items = authors[slug]
-        display = items[0]["name"] or "Anonymous"
+        display = items[0]["author_display"]
         prev_slug = author_slugs[idx - 1] if idx > 0 else author_slugs[-1]
         next_slug = author_slugs[idx + 1] if idx + 1 < len(author_slugs) else author_slugs[0]
         panels = []
         for tribute in items:
             tribute_html = format_paragraphs(tribute["tribute"])
             how = html.escape(tribute["how"]) if tribute["how"] else ""
-            meta = f"<strong>{html.escape(display)}</strong>" + (f" — {how}" if how else "")
+            full_name = tribute["name"] or display
+            meta = f"<strong>{html.escape(full_name)}</strong>" + (f" — {how}" if how else "")
             panels.append(
                 f"<section class=\"tribute-panel\">\n"
                 f"  <div class=\"tribute-body\">{tribute_html}</div>\n"

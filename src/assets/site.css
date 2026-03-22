@@ -367,7 +367,7 @@ body {
 .tribute-meta {
   font-family: var(--sans);
   color: var(--muted);
-  font-size: 14px;
+  font-size: 18px;
 }
 
 .tribute-meta strong {
