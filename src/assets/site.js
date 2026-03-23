@@ -390,7 +390,9 @@ function initShowcase() {
   const gear = showcase.querySelector('[data-showcase-gear]');
   const controls = showcase.querySelector('[data-showcase-controls]');
   const speedButtons = Array.from(showcase.querySelectorAll('[data-showcase-speed]'));
+  const eventModeToggle = showcase.querySelector('[data-showcase-event-toggle]');
   const storageKey = 'tributeShowcaseSpeed';
+  const eventModeStorageKey = 'tributeShowcaseEventMode';
 
   const loadSpeed = () => {
     try {
@@ -409,7 +411,24 @@ function initShowcase() {
     }
   };
 
+  const loadEventMode = () => {
+    try {
+      return window.localStorage.getItem(eventModeStorageKey) === 'true';
+    } catch {
+      return false;
+    }
+  };
+
+  const saveEventMode = (value) => {
+    try {
+      window.localStorage.setItem(eventModeStorageKey, value ? 'true' : 'false');
+    } catch {
+      // Ignore storage failures; the page still works without persistence.
+    }
+  };
+
   let speed = loadSpeed();
+  let eventMode = loadEventMode();
   let index = 0;
   let timer = null;
   const motionTimers = new Map();
@@ -423,6 +442,13 @@ function initShowcase() {
   const setControlsOpen = (open) => {
     controls.hidden = !open;
     gear.setAttribute('aria-expanded', open ? 'true' : 'false');
+  };
+
+  const applyEventMode = () => {
+    document.body.classList.toggle('showcase-event-mode', eventMode);
+    if (eventModeToggle) {
+      eventModeToggle.checked = eventMode;
+    }
   };
 
   const durationFor = (item) => {
@@ -566,6 +592,15 @@ function initShowcase() {
     });
   });
 
+  if (eventModeToggle) {
+    eventModeToggle.addEventListener('change', () => {
+      eventMode = eventModeToggle.checked;
+      saveEventMode(eventMode);
+      applyEventMode();
+      show(index);
+    });
+  }
+
   window.addEventListener('resize', () => {
     show(index);
   });
@@ -590,6 +625,7 @@ function initShowcase() {
   });
 
   setControlState();
+  applyEventMode();
   setControlsOpen(false);
   show(0);
 }

@@ -286,6 +286,17 @@ def build(download_category_intros: bool = False):
 """
 
     draft_badge = "<span class=\"draft-badge\">DRAFT</span>" if config.get("is_draft") else ""
+
+    def header_nav_markup(asset_prefix_value: str) -> str:
+        return f"""
+      <nav class=\"site-nav\" data-site-nav>
+        <a href=\"https://forms.gle/mtSp5WvYWQ6MYse87\">Submit a Tribute</a>
+        <a href=\"{asset_prefix_value}/carousel/\">Carousel</a>
+        <a href=\"{asset_prefix_value}/about/\">About</a>
+        <a href=\"{asset_prefix_value}/category/\">Browse by category</a>
+        <a href=\"{asset_prefix_value}/author/\">Browse by author</a>
+      </nav>""".strip()
+
     home_html = render_page(
         template,
         title=hero_title,
@@ -294,6 +305,7 @@ def build(download_category_intros: bool = False):
         asset_prefix=asset_prefix(0),
         page_class="home",
         site_title=html.escape(header_title) + draft_badge,
+        header_right=header_nav_markup(asset_prefix(0)),
         content=home_content,
         page_script="",
     )
@@ -331,6 +343,18 @@ def build(download_category_intros: bool = False):
         <button class=\"showcase-speed-button\" type=\"button\" data-showcase-speed=\"1\">Normal</button>
         <button class=\"showcase-speed-button\" type=\"button\" data-showcase-speed=\"1.25\">Faster</button>
       </div>
+      <label class=\"showcase-toggle\" for=\"showcase-event-mode\">
+        <span class=\"showcase-controls-label showcase-controls-label-inline\">Event mode</span>
+        <input id=\"showcase-event-mode\" class=\"showcase-toggle-input\" type=\"checkbox\" data-showcase-event-toggle />
+        <span class=\"showcase-toggle-ui\" aria-hidden=\"true\"></span>
+      </label>
+      <div class=\"showcase-controls-links\" data-showcase-controls-links>
+        <a href=\"https://forms.gle/mtSp5WvYWQ6MYse87\">Submit a Tribute</a>
+        <a href=\"../\">Home</a>
+        <a href=\"../about/\">About</a>
+        <a href=\"../category/\">Browse by category</a>
+        <a href=\"../author/\">Browse by author</a>
+      </div>
     </div>
   </div>
   <div class=\"showcase-stage\" data-showcase-stage>
@@ -347,6 +371,18 @@ def build(download_category_intros: bool = False):
         asset_prefix=asset_prefix(1),
         page_class="showcase-page",
         site_title=html.escape(header_title) + draft_badge,
+        header_right=f"""
+      <div class=\"showcase-header-right\" data-showcase-header-right>
+        {header_nav_markup(asset_prefix(1))}
+        <div class=\"showcase-event-banner\" data-showcase-event-banner>
+          <div class=\"showcase-event-copy\">
+            <span class=\"showcase-event-site\">davidmackay.uk</span>
+            <span class=\"showcase-event-separator\"> - </span>
+            <span class=\"showcase-event-label\">submit a tribute:</span>
+          </div>
+          <img class=\"showcase-event-qr\" src=\"{asset_prefix(1)}/images/submit_QR.png\" alt=\"QR code for submitting a tribute\" />
+        </div>
+      </div>""".strip(),
         content=showcase_content,
         page_script="",
     )
@@ -374,6 +410,7 @@ def build(download_category_intros: bool = False):
         asset_prefix=asset_prefix(1),
         page_class="about-page",
         site_title=html.escape(header_title) + draft_badge,
+        header_right=header_nav_markup(asset_prefix(1)),
         content=about_content,
         page_script="",
     )
@@ -413,6 +450,7 @@ def build(download_category_intros: bool = False):
         asset_prefix=asset_prefix(1),
         page_class="category-index",
         site_title=html.escape(header_title) + draft_badge,
+        header_right=header_nav_markup(asset_prefix(1)),
         content=category_index_content,
         page_script="",
     )
@@ -466,6 +504,7 @@ def build(download_category_intros: bool = False):
             asset_prefix=asset_prefix(2),
             page_class="category-page",
             site_title=html.escape(header_title) + draft_badge,
+            header_right=header_nav_markup(asset_prefix(2)),
             content=content,
             page_script="",
         )
@@ -502,6 +541,7 @@ def build(download_category_intros: bool = False):
         asset_prefix=asset_prefix(1),
         page_class="author-index",
         site_title=html.escape(header_title) + draft_badge,
+        header_right=header_nav_markup(asset_prefix(1)),
         content=author_index_content,
         page_script="",
     )
@@ -556,6 +596,7 @@ def build(download_category_intros: bool = False):
             asset_prefix=asset_prefix(2),
             page_class="author-page",
             site_title=html.escape(header_title) + draft_badge,
+            header_right=header_nav_markup(asset_prefix(2)),
             content=content,
             page_script="",
         )
