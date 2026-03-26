@@ -694,7 +694,7 @@ def parse_args():
     parser.add_argument(
         "--download-category-intros",
         action="store_true",
-        help="Download missing category intro markdown files before building.",
+        help="Refresh all category intro markdown files before building.",
     )
     return parser.parse_args()
 

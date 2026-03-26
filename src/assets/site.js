@@ -409,6 +409,11 @@ function initShowcase() {
   // Keep this in sync with the showcase-card opacity transition in src/assets/site.css.
   const fadeDuration = 900;
 
+  const isInteractiveTarget = (target) => (
+    target instanceof Element
+    && Boolean(target.closest('button, input, select, textarea, a, [contenteditable="true"], [role="button"]'))
+  );
+
   const loadSpeed = () => {
     try {
       const saved = Number(window.localStorage.getItem(storageKey));
@@ -644,6 +649,9 @@ function initShowcase() {
   });
 
   document.addEventListener('keydown', (event) => {
+    if (isInteractiveTarget(event.target)) {
+      return;
+    }
     if (event.key === 'ArrowRight' || event.key === 'ArrowDown' || event.key === ' ') {
       event.preventDefault();
       show((index + 1) % items.length);
