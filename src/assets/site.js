@@ -492,7 +492,6 @@ function initShowcase() {
     let attempts = 0;
     const minTributeSize = window.innerWidth < 700 ? 24 : 28;
     const minPadding = 20;
-    const minMetaSize = 16;
 
     const apply = () => {
       inner.style.setProperty('--showcase-tribute-size', `${tributeSize}px`);
@@ -509,8 +508,6 @@ function initShowcase() {
         tributeSize -= 1;
       } else if (padding > minPadding) {
         padding -= 1;
-      } else if (metaSize > minMetaSize) {
-        metaSize -= 0.5;
       } else {
         break;
       }
