@@ -34,6 +34,10 @@ def log(message: str):
     print(f"[build] {message}")
 
 
+def warn(message: str):
+    print(f"[build] WARNING: {message}")
+
+
 def slugify(value: str) -> str:
     value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
     value = value.lower()
@@ -288,9 +292,23 @@ def build(download_category_intros: bool = False, update_tributes_csv: bool = Tr
 
     categories = {}
     authors = {}
+    uncategorized = []
     for tribute in tributes:
-        categories.setdefault(tribute["section"], []).append(tribute)
+        if tribute["section"]:
+            categories.setdefault(tribute["section"], []).append(tribute)
+        else:
+            uncategorized.append(tribute)
         authors.setdefault(tribute["author_slug"], []).append(tribute)
+
+    if uncategorized:
+        names = ", ".join(
+            tribute["name"] or tribute["author_display"] or "Anonymous"
+            for tribute in uncategorized
+        )
+        warn(
+            f"Found {len(uncategorized)} tribute(s) without a category; they will appear on author pages only. "
+            f"Authors: {names}"
+        )
 
     ensure_category_intro_files(sorted(categories.keys()), download_category_intros)
 
