@@ -431,6 +431,7 @@ function initShowcase() {
   let eventMode = loadEventMode();
   let index = 0;
   let timer = null;
+  let currentDisplayDuration = 0;
   const motionTimers = new Map();
 
   const setControlState = () => {
@@ -544,6 +545,7 @@ function initShowcase() {
   };
 
   const scheduleNext = (displayDuration) => {
+    currentDisplayDuration = displayDuration;
     window.clearTimeout(timer);
     timer = window.setTimeout(() => {
       show((index + 1) % items.length);
@@ -606,7 +608,7 @@ function initShowcase() {
     if (document.hidden) {
       window.clearTimeout(timer);
     } else {
-      scheduleNext();
+      scheduleNext(currentDisplayDuration || durationFor(items[index]));
     }
   });
 

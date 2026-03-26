@@ -251,6 +251,10 @@ body.showcase-page {
   height: 100vh;
 }
 
+body.showcase-page .site-header {
+  backdrop-filter: none;
+}
+
 body.showcase-page.showcase-event-mode .site-header {
   align-items: flex-start;
   padding-top: 18px;
@@ -337,7 +341,6 @@ body.showcase-page.showcase-event-mode .showcase-event-banner {
   font-size: var(--showcase-tribute-size);
   line-height: var(--showcase-line-height);
   transform: translateY(0);
-  will-change: transform;
 }
 
 .showcase-tribute p {
