@@ -30,6 +30,19 @@ function initLocalFileLinks() {
   });
 }
 
+function initViewportHeightVar() {
+  const updateViewportHeight = () => {
+    document.documentElement.style.setProperty('--viewport-height', `${window.innerHeight}px`);
+  };
+
+  updateViewportHeight();
+  window.addEventListener('resize', updateViewportHeight);
+  window.addEventListener('orientationchange', updateViewportHeight);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', updateViewportHeight);
+  }
+}
+
 function initShuffle() {
   document.querySelectorAll('[data-shuffle="true"]').forEach((container) => {
     const fixedItems = Array.from(container.children).filter((item) => item.dataset.shuffleFixed === 'true');
@@ -630,6 +643,7 @@ function initShowcase() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  initViewportHeightVar();
   initLocalFileLinks();
   initShuffle();
   initAcronyms();

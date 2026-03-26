@@ -248,7 +248,7 @@ body {
 
 body.showcase-page {
   overflow: hidden;
-  height: 100vh;
+  height: var(--viewport-height, 100vh);
 }
 
 body.showcase-page .site-header {
