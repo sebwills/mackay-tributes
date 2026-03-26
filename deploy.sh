@@ -1,2 +1,2 @@
 #!/bin/bash
-rsync -r --progress dist/ mackay@onza.mythic-beasts.com:www/davidmackay.uk/
+rsync -r --progress --delete dist/ mackay@onza.mythic-beasts.com:www/davidmackay.uk/

@@ -1,8 +1,8 @@
 {
   "base_url": "https://davidmackay.uk",
-  "header_title": "Tributes to David J.C. Mackay",
+  "header_title": "Tributes to David J.C. MacKay",
   "hero_title": "Tributes to Sir David J.C. MacKay FRS",
-  "is_draft": true,
+  "is_draft": false,
   "summary": [
     "Physicist, information theorist, educator, and public servant.",
     "A mind of clarity and generosity whose work continues to shape how we think about energy, information, and evidence."
@@ -17,7 +17,7 @@
     {
       "key": "INFORMATION_THEORY",
       "heading": "The Inference Group",
-      "short_description": "David's wide-ranging research and collaboration in information theory."
+      "short_description": "His wide-ranging research and collaboration in information theory."
     },
     {
       "key": "ITILA",
@@ -32,7 +32,7 @@
     {
       "key": "DASHER",
       "heading": "Dasher",
-      "short_description": "His unique user-inteface for writing."
+      "short_description": "His unique user-interface for writing."
     },
     {
       "key": "PERSON",
