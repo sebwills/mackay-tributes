@@ -5,16 +5,34 @@ import json
 import os
 import re
 import shutil
+import time
 import unicodedata
 from pathlib import Path
 from urllib.error import URLError
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 DIST = ROOT / "dist"
 CATEGORY_INTROS = SRC / "category_intros"
 INTRO_URL_TEMPLATE = "https://raw.githubusercontent.com/pilgrimbeart/mackay/refs/heads/main/intro_{key}.md"
+TRIBUTES_CSV = ROOT / "tributes.csv"
+TRIBUTES_SHEET_EXPORT_URL = (
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vSTHBL_p4dyp6P3e1Htfkv68EDi1W9POHJ17Xnr0BtnzyjsZC6MymfIu9dSmAa4v9-mH7J0mJWQei00/pub"
+    "?gid=45077070&single=true&output=csv"
+)
+EXPECTED_TRIBUTES_COLUMNS = {
+    "Section",
+    "Name",
+    "How_knew_David",
+    "Tribute",
+    "Name_for_index",
+}
+
+
+def log(message: str):
+    print(f"[build] {message}")
+
 
 def slugify(value: str) -> str:
     value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
@@ -147,15 +165,18 @@ def download_category_intro(key: str):
 
 def ensure_category_intro_files(category_keys, download_missing: bool):
     missing = [key for key in category_keys if not category_intro_path(key).exists()]
-    if not missing:
+    if download_missing:
+        log("Refreshing all category intro markdown files...")
+        for key in category_keys:
+            log(f"Downloading category intro for {key}...")
+            download_category_intro(key)
         return
-    if not download_missing:
-        missing_list = ", ".join(missing)
-        raise SystemExit(
-            "Missing category intro file(s): "
-            f"{missing_list}. Run `python3 tools/build.py --download-category-intros` to fetch them."
-        )
+    if not missing:
+        log("All category intro markdown files already present; no download needed.")
+        return
+    log(f"Downloading {len(missing)} missing category intro markdown file(s)...")
     for key in missing:
+        log(f"Downloading category intro for {key}...")
         download_category_intro(key)
 
 
@@ -176,9 +197,38 @@ def count_words(text: str) -> int:
     return len(re.findall(r"\b[\w'-]+\b", text))
 
 
+def fetch_tributes_csv():
+    log("Refreshing tributes.csv from published Google Sheet CSV...")
+    url = f"{TRIBUTES_SHEET_EXPORT_URL}&_cb={time.time_ns()}"
+    request = Request(
+        url,
+        headers={
+            "User-Agent": "mackay-tributes-builder/1.0",
+            "Cache-Control": "no-cache, max-age=0",
+            "Pragma": "no-cache",
+        },
+    )
+    with urlopen(request, timeout=30) as response:
+        content = response.read().decode("utf-8-sig")
+
+    rows = list(csv.reader(content.splitlines()))
+    if not rows:
+        raise ValueError("Downloaded tributes CSV was empty.")
+
+    columns = set(rows[0])
+    missing_columns = sorted(EXPECTED_TRIBUTES_COLUMNS - columns)
+    if missing_columns:
+        missing = ", ".join(missing_columns)
+        raise ValueError(f"Downloaded tributes CSV is missing expected column(s): {missing}")
+
+    with TRIBUTES_CSV.open("w", encoding="utf-8", newline="") as f:
+        f.write(content)
+    log(f"Updated {TRIBUTES_CSV.name}.")
+
+
 def load_tributes():
     tributes = []
-    with (ROOT / "tributes.csv").open(newline="", encoding="utf-8") as f:
+    with TRIBUTES_CSV.open(newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
             tributes.append({
@@ -204,7 +254,12 @@ def resolve_author_identity(index_name: str, fallback_name: str):
     return sort_name, display_name
 
 
-def build(download_category_intros: bool = False):
+def build(download_category_intros: bool = False, update_tributes_csv: bool = True):
+    if update_tributes_csv:
+        fetch_tributes_csv()
+    else:
+        log("Skipping tributes.csv refresh; using local CSV.")
+
     config = load_config()
     base_url = config.get("base_url", "").rstrip("/")
     template = load_template("page.html")
@@ -222,6 +277,7 @@ def build(download_category_intros: bool = False):
     shutil.copytree(ROOT / "images", DIST / "images")
 
     tributes = load_tributes()
+    log(f"Loaded {len(tributes)} tribute(s) from {TRIBUTES_CSV.name}.")
 
     for tribute in tributes:
         tribute["section_slug"] = slugify(tribute["section"])
@@ -605,6 +661,19 @@ def build(download_category_intros: bool = False):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "--update-tributes-csv",
+        dest="update_tributes_csv",
+        action="store_true",
+        default=True,
+        help="Refresh tributes.csv from the Google Sheet before building (default: enabled).",
+    )
+    parser.add_argument(
+        "--no-update-tributes-csv",
+        dest="update_tributes_csv",
+        action="store_false",
+        help="Skip refreshing tributes.csv from the Google Sheet and build from the local file as-is.",
+    )
+    parser.add_argument(
         "--download-category-intros",
         action="store_true",
         help="Download missing category intro markdown files before building.",
@@ -615,6 +684,14 @@ def parse_args():
 if __name__ == "__main__":
     args = parse_args()
     try:
-        build(download_category_intros=args.download_category_intros)
+        build(
+            download_category_intros=args.download_category_intros,
+            update_tributes_csv=args.update_tributes_csv,
+        )
     except URLError as exc:
-        raise SystemExit(f"Failed to download category intro files: {exc}") from exc
+        raise SystemExit(
+            "Failed to download remote build data. "
+            f"Use `python3 tools/build.py --no-update-tributes-csv` to build from the local CSV instead. ({exc})"
+        ) from exc
+    except ValueError as exc:
+        raise SystemExit(f"Failed to refresh tributes CSV: {exc}") from exc
