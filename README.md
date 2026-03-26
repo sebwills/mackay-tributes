@@ -1,6 +1,6 @@
 # David MacKay Tributes
 
-Static site generator for the David MacKay tribute website.
+Static site generator for the [David MacKay tribute website](https://davidmackay.uk).
 
 The site is built from a local [`tributes.csv`](/Users/saw/dev/mackay_tributes/tributes.csv) file plus templates and assets under [`src/`](/Users/saw/dev/mackay_tributes/src). The build output is written to [`dist/`](/Users/saw/dev/mackay_tributes/dist).
 
