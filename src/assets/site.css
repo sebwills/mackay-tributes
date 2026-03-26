@@ -296,6 +296,7 @@ body.showcase-page.showcase-event-mode .showcase-event-banner {
   inset: 0;
   opacity: 0;
   pointer-events: none;
+  /* Keep this fade duration in sync with fadeDuration in src/assets/site.js. */
   transition: opacity 0.9s ease;
 }
 

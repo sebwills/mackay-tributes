@@ -406,6 +406,8 @@ function initShowcase() {
   const eventModeToggle = showcase.querySelector('[data-showcase-event-toggle]');
   const storageKey = 'tributeShowcaseSpeed';
   const eventModeStorageKey = 'tributeShowcaseEventMode';
+  // Keep this in sync with the showcase-card opacity transition in src/assets/site.css.
+  const fadeDuration = 900;
 
   const loadSpeed = () => {
     try {
@@ -566,8 +568,15 @@ function initShowcase() {
   };
 
   const show = (nextIndex) => {
+    const previousItem = items[index];
     const nextItem = items[nextIndex];
-    items.forEach((item) => clearMotion(item));
+
+    items.forEach((item) => {
+      if (item !== previousItem && item !== nextItem) {
+        clearMotion(item);
+      }
+    });
+
     const layout = fitCard(nextItem);
     startMotion(nextItem, layout.displayDuration, layout.overflow);
     const progress = nextItem.querySelector('[data-showcase-progress]');
@@ -581,6 +590,15 @@ function initShowcase() {
     items.forEach((item, itemIndex) => {
       item.classList.toggle('is-active', itemIndex === nextIndex);
     });
+
+    if (previousItem && previousItem !== nextItem) {
+      window.setTimeout(() => {
+        if (!previousItem.classList.contains('is-active')) {
+          clearMotion(previousItem);
+        }
+      }, fadeDuration);
+    }
+
     index = nextIndex;
     scheduleNext(layout.displayDuration);
   };
