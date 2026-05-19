@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 DIST = ROOT / "dist"
 CATEGORY_INTROS = SRC / "category_intros"
+FOREWORD_MD = SRC / "foreword.md"
 INTRO_URL_TEMPLATE = "https://raw.githubusercontent.com/pilgrimbeart/mackay/refs/heads/main/intro_{key}.md"
 TRIBUTES_CSV = ROOT / "tributes.csv"
 TRIBUTES_SHEET_EXPORT_URL = (
@@ -60,6 +61,44 @@ def format_paragraphs(text: str) -> str:
         block = enrich_acronyms(block)
         rendered.append(f"<p>{block}</p>")
     return "\n".join(rendered)
+
+
+def render_inline_markdown(text: str) -> str:
+    parts = []
+    cursor = 0
+    for match in re.finditer(r"\[([^\]]+)\]\((https?://[^)]+)\)", text):
+        start, end = match.span()
+        parts.append(html.escape(smart_typography(text[cursor:start])))
+        label = html.escape(smart_typography(match.group(1)))
+        href = html.escape(match.group(2), quote=True)
+        parts.append(f'<a href="{href}" target="_blank" rel="noreferrer noopener">{label}</a>')
+        cursor = end
+    parts.append(html.escape(smart_typography(text[cursor:])))
+    return enrich_acronyms("".join(parts))
+
+
+def format_markdown_paragraphs(text: str) -> str:
+    text = text.strip()
+    if not text:
+        return ""
+    blocks = re.split(r"\n\s*\n", text)
+    rendered = []
+    for block in blocks:
+        block = block.strip()
+        lines = [line.strip() for line in block.splitlines()]
+        if len(lines) > 1 and all(line for line in lines):
+            # Preserve explicit line breaks for signature blocks.
+            rendered.append("<p>" + "<br />".join(render_inline_markdown(line) for line in lines) + "</p>")
+            continue
+        single = re.sub(r"\s+", " ", block.replace("\n", " ")).strip()
+        rendered.append(f"<p>{render_inline_markdown(single)}</p>")
+    return "\n".join(rendered)
+
+
+def load_foreword_html() -> str:
+    raw = FOREWORD_MD.read_text(encoding="utf-8")
+    body = re.sub(r"^\s*# .*$", "", raw, count=1, flags=re.MULTILINE).strip()
+    return format_markdown_paragraphs(body)
 
 
 def smart_typography(text: str) -> str:
@@ -364,6 +403,7 @@ def build(download_category_intros: bool = False, update_tributes_csv: bool = Tr
     def header_nav_markup(asset_prefix_value: str) -> str:
         return f"""
       <nav class=\"site-nav\" data-site-nav>
+        <a href=\"{asset_prefix_value}/foreword/\">Foreword</a>
         <a href=\"https://forms.gle/mtSp5WvYWQ6MYse87\">Submit a Tribute</a>
         <a href=\"{asset_prefix_value}/carousel/\">Carousel</a>
         <a href=\"{asset_prefix_value}/about/\">About</a>
@@ -489,6 +529,31 @@ def build(download_category_intros: bool = False, update_tributes_csv: bool = Tr
         page_script="",
     )
     write_page(DIST / "about" / "index.html", about_html)
+
+    foreword_content = f"""
+<section>
+  <h1 class=\"section-title\">Foreword</h1>
+  <div class=\"tribute-card\">
+    <div class=\"tribute-text\">
+      {load_foreword_html()}
+    </div>
+  </div>
+</section>
+"""
+
+    foreword_html = render_page(
+        template,
+        title="Foreword",
+        canonical=f"{base_url}/foreword/" if base_url else "",
+        description="Foreword for the David J. C. MacKay tribute collection.",
+        asset_prefix=asset_prefix(1),
+        page_class="foreword-page",
+        site_title=html.escape(header_title) + draft_badge,
+        header_right=header_nav_markup(asset_prefix(1)),
+        content=foreword_content,
+        page_script="",
+    )
+    write_page(DIST / "foreword" / "index.html", foreword_html)
 
     # Category index
     category_cards = []
